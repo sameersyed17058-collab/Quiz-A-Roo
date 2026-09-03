@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Global Leaderboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&amp;family=Be+Vietnam+Pro:wght@400&amp;family=Work+Sans:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#eeeeed",
+                        "inverse-on-surface": "#f1f0f0",
+                        "error": "#ba1a1a",
+                        "on-background": "#1a1c1c",
+                        "tertiary-fixed": "#ede3b8",
+                        "on-primary-fixed": "#2f1500",
+                        "surface-container-low": "#f4f3f2",
+                        "surface-bright": "#faf9f8",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e9e8e7",
+                        "on-secondary-fixed": "#351000",
+                        "on-surface": "#1a1c1c",
+                        "tertiary": "#665f3d",
+                        "surface-tint": "#904d00",
+                        "primary-container": "#b15f00",
+                        "outline": "#887364",
+                        "inverse-primary": "#ffb77d",
+                        "secondary-fixed": "#ffdbcc",
+                        "secondary-container": "#fd9e70",
+                        "primary": "#8d4b00",
+                        "outline-variant": "#dbc2b0",
+                        "tertiary-fixed-dim": "#d1c79d",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#b5ac84",
+                        "on-error": "#ffffff",
+                        "on-primary-container": "#fffbff",
+                        "surface-dim": "#dadad9",
+                        "on-tertiary-fixed-variant": "#4d4727",
+                        "surface-variant": "#e3e2e1",
+                        "on-tertiary-fixed": "#201c02",
+                        "surface-container-highest": "#e3e2e1",
+                        "on-primary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#ffb77d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#76340e",
+                        "background": "#faf9f8",
+                        "on-secondary-fixed-variant": "#76330d",
+                        "primary-fixed": "#ffdcc3",
+                        "inverse-surface": "#2f3130",
+                        "surface": "#faf9f8",
+                        "on-primary-fixed-variant": "#6e3900",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary-container": "#464021",
+                        "secondary-fixed-dim": "#ffb693",
+                        "secondary": "#944a23",
+                        "on-surface-variant": "#554336"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "md": "24px",
+                        "margin-desktop": "64px",
+                        "gutter": "20px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "xl": "80px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Be Vietnam Pro"],
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "headline-xl": ["Plus Jakarta Sans"],
+                        "label-sm": ["Work Sans"],
+                        "body-lg": ["Be Vietnam Pro"],
+                        "label-md": ["Work Sans"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "headline-xl": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #faf9f8;
+            color: #1a1c1c;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md pb-xl md:pb-0 md:pl-64">
+<!-- Desktop Side Navigation -->
+<nav class="hidden md:flex flex-col h-full py-md px-sm bg-surface-bright dark:bg-surface-dim shadow-lg fixed top-0 left-0 w-64 z-40 transition-all duration-200 text-primary dark:text-primary-fixed-dim">
+<div class="mb-lg px-sm">
+<h1 class="font-headline-lg text-primary">Quiz Master</h1>
+</div>
+<div class="flex items-center gap-sm mb-lg px-sm">
+<img class="w-12 h-12 rounded-full object-cover" data-alt="A small, friendly avatar illustration of an owl wearing glasses, set against a warm, light-mode friendly pastel yellow background, conveying a sense of wisdom and learning in a casual, tactile modern style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMTbBm6gbR3_6SgWiWG0ANQwZpbJG5ZpDG_dnOPOJmoCwUYGEX1O76iE0wRoSJJQ8VLpCbhxnh4hYW4nNZ1USvNA0nH947G6ns1GDgKxiBp5T1DCBNX26KqccDYQCidAVJGOc4gKx_VbOxJw1xn8_7_gJwnMYU-NSOh9l7K549U_WDa_RyWBKWn8tybRmGfPVkBXlyXMRNbfbRBAZ1VSq-T8jWZPrhbWFZFG8NQW6lHYBo8ZUI2Gk6BA"/>
+<div>
+<p class="font-headline-md text-sm leading-tight text-on-surface">Quiz Master</p>
+<p class="font-label-sm text-on-surface-variant">Level 12 • 4500 XP</p>
+</div>
+</div>
+<div class="flex-1 space-y-sm">
+<a class="flex items-center gap-md px-sm py-sm rounded-lg text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-body-md">Home</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm rounded-lg text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-body-md">My Stats</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm rounded-lg text-primary font-bold border-r-4 border-primary hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+<span class="font-body-md">High Scores</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm rounded-lg text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">info</span>
+<span class="font-body-md">About</span>
+</a>
+<a class="flex items-center gap-md px-sm py-sm rounded-lg text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-md">Settings</span>
+</a>
+</div>
+<div class="mt-auto px-sm pt-lg">
+<button class="w-full bg-primary text-on-primary py-sm rounded-full font-label-md hover:opacity-80 transition-opacity">Upgrade to Pro</button>
+</div>
+</nav>
+<!-- Mobile Top App Bar -->
+<header class="md:hidden flex justify-between items-center px-margin-mobile h-16 w-full fixed top-0 z-40 bg-background dark:bg-background text-primary dark:text-primary-fixed-dim transition-all duration-200">
+<button class="p-2 hover:opacity-80 transition-opacity scale-95 active:transition-transform duration-100 text-on-surface-variant">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="font-headline-md text-headline-md-mobile text-primary dark:text-primary-fixed-dim">Quiz-a-roo</h1>
+<div class="flex items-center gap-2">
+<button class="p-2 hover:opacity-80 transition-opacity scale-95 active:transition-transform duration-100 text-on-surface-variant">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+<button class="p-2 hover:opacity-80 transition-opacity scale-95 active:transition-transform duration-100 text-primary font-bold">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full max-w-[1200px] mx-auto px-margin-mobile md:px-margin-desktop py-md md:py-lg pt-20 md:pt-lg">
+<div class="mb-lg text-center md:text-left">
+<h2 class="font-headline-xl text-on-surface mb-xs">Global Leaderboard</h2>
+<p class="font-body-lg text-on-surface-variant">See where you stand among the top trivia minds.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Leaderboard Stage (Centers on Desktop) -->
+<div class="md:col-start-3 md:col-span-8 flex flex-col gap-sm">
+<!-- Top 3 Podium (Visual flair) -->
+<div class="flex justify-center items-end gap-sm mb-md h-48 md:h-64">
+<!-- 2nd Place -->
+<div class="flex flex-col items-center flex-1 max-w-[120px]">
+<div class="relative mb-2">
+<img class="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-surface-container-lowest shadow-sm object-cover" data-alt="Avatar portrait of a smiling person with short curly hair, illustrated in a warm, tactile modern vector style with soft shading, wearing a casual orange shirt against a soft cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPUcTm5wAf2yzc6Hhuml67Vl5DSmlEtRxBUcwCC_ta_TOCYlreSElA9z4143F-v1Vaoa34Uaw7tT2HbC5Jcx6TTC3i7wDEe7sHJMNnyljkpffJ4b74MtUbk76Scn2CYOrt_VyHC9pFf4zpng8sJ86OLk3QNW-bDbj3RoyoxdvXZMslc1ILZLdIzandWNBRdHV-tnxA_fxW8xj128Ujr-U3MMBZx4w3w77jtjALa6HcRxIdFfyDpxgy0g"/>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-surface-variant text-on-surface-variant w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs border-2 border-surface-container-lowest">2</div>
+</div>
+<p class="font-label-md text-on-surface text-center truncate w-full">Alex J.</p>
+<p class="font-label-sm text-primary">12,450 XP</p>
+<div class="w-full bg-secondary-container h-24 md:h-32 rounded-t-lg mt-2 opacity-80"></div>
+</div>
+<!-- 1st Place -->
+<div class="flex flex-col items-center flex-1 max-w-[140px] z-10">
+<div class="relative mb-2">
+<span class="material-symbols-outlined absolute -top-8 left-1/2 -translate-x-1/2 text-primary" style="font-size: 32px; font-variation-settings: 'FILL' 1;">workspace_premium</span>
+<img class="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-primary shadow-md object-cover" data-alt="Avatar portrait of a confident woman with long dark hair, illustrated in a warm, tactile modern vector style, wearing glasses and a yellow top, set against a soft cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIufRqlFtVIwxuVkHE9LxPguBts84_hvV1pLVEQ1z_JgNCiZXHY8-8uCcRajPmbdaGtKF0NWQufnutT5EKQLLKXIGCix4tzi6NtcHUhShJ57BY8g5z5oZ1--EHV43quvRELfb603aKrN0PQIud8ANkV6p_Wz9BO20rHun_N-7fBL6ViMaT69k8bIJmyu0Qm-t74SvAyos5zaGwQGP6RXbn9Y_lppnDCGCG4VEqoBdgh6OGomNx9eoO8w"/>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-on-primary w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm border-2 border-surface-container-lowest shadow-sm">1</div>
+</div>
+<p class="font-label-md text-on-surface text-center truncate w-full font-bold">Sarah T.</p>
+<p class="font-label-sm text-primary font-bold">15,200 XP</p>
+<div class="w-full bg-primary h-32 md:h-40 rounded-t-lg mt-2 shadow-[0_-4px_20px_rgba(141,75,0,0.15)]"></div>
+</div>
+<!-- 3rd Place -->
+<div class="flex flex-col items-center flex-1 max-w-[120px]">
+<div class="relative mb-2">
+<img class="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-surface-container-lowest shadow-sm object-cover" data-alt="Avatar portrait of a friendly guy with a beard and a beanie, illustrated in a warm, tactile modern vector style, wearing a green sweater against a soft cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFoExuQtqAKc_TntxDWxfIPXQreVcxctMNqHbT6uT0qtmD29kNmhWdejy5s6XyxCJQr_NqjFLR5glE1Q_oV4pIenCb_1rRGzX7Y8WJrAe_Leua6dbkfXEbmVHr__pMnFkr7pK4om6ldbX4Pmy4ftleRVUF8paidIO8wbzGCJDYMxGXCZYhiMwf7Nm6NyvQSrLrM69XaQKJvTFXtEe40f3PIyd97CC8Ut_6t30sVtdZnEouRn6sMoD63g"/>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#cd7f32] text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs border-2 border-surface-container-lowest">3</div>
+</div>
+<p class="font-label-md text-on-surface text-center truncate w-full">Mike R.</p>
+<p class="font-label-sm text-primary">11,800 XP</p>
+<div class="w-full bg-tertiary-container h-20 md:h-24 rounded-t-lg mt-2 opacity-80"></div>
+</div>
+</div>
+<!-- List Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-sm md:p-md flex flex-col gap-xs">
+<!-- Current User Highlight (Floating above standard list or pinned) -->
+<div class="bg-primary-container/10 border border-primary/20 rounded-lg p-sm flex items-center gap-sm mb-md shadow-[0_2px_10px_rgba(141,75,0,0.05)] relative overflow-hidden">
+<div class="w-8 text-center font-headline-md text-primary">42</div>
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A small, friendly avatar illustration of an owl wearing glasses, set against a warm, light-mode friendly pastel yellow background, conveying a sense of wisdom and learning in a casual, tactile modern style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkqMZqZXw7n7O9seUe3fUxa2xbroRQxC_fwUP4qn8EnbxbdrHtX3UOsaUvjQMwb-Y6FuugCPZrZD2QjwnG2og_EycW57qCwAcpHgGC_D9TAyKT4IHgNQVIcy3ZLsmATL9uKc5oA98xyG1daIt4p5A22iLbrP12iSHJ0SbxCQ7CnI2hfyHs5zkJIS9yB7TPuD1s-hl8LleNDBH_9b2ZdKN-2_WGjQWPg6CmS25tpMrCLlg252rC_XnYxQ"/>
+<div class="flex-1">
+<p class="font-label-md text-on-surface font-bold">You (Quiz Master)</p>
+<p class="font-label-sm text-on-surface-variant">Level 12</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-primary font-bold">4,500</p>
+<p class="font-label-sm text-on-surface-variant">XP</p>
+</div>
+<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+</div>
+<!-- Rank Item 4 -->
+<div class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-variant/30 transition-colors">
+<div class="w-8 text-center font-label-md text-on-surface-variant">4</div>
+<img class="w-10 h-10 rounded-full object-cover bg-surface-variant" data-alt="Avatar portrait of a woman with a hijab, illustrated in a warm, tactile modern vector style, smiling softly against a soft cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByYP37xXZSxCROckv7NJucufHZ3POddttp8ROqUUwT7TdgOqmdFVbDRaCesRVsX0GxQJbHdrLgtVyVSSgwR9d9qvJOxO70e5W5uPOwzo8fQq7vCgscpZZgiklwUsu9n1pv5H5uUih3J43zvjLk4o572PENZqkBm18LBjlOn4NfswOjIaKZVbaQPYN5KL6ODtkXB4P8MqT4zHx2-xJMwfNkB7_Rz_0PjA4FsI85_UMWvKxQmXZqkqcCgA"/>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">Fatima A.</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-on-surface">11,250</p>
+</div>
+</div>
+<div class="h-px w-full bg-surface-variant/50 ml-12"></div>
+<!-- Rank Item 5 -->
+<div class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-variant/30 transition-colors">
+<div class="w-8 text-center font-label-md text-on-surface-variant">5</div>
+<img class="w-10 h-10 rounded-full object-cover bg-surface-variant" data-alt="Avatar portrait of an older gentleman with white hair and glasses, illustrated in a warm, tactile modern vector style, set against a soft cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCog-Rpr2GpFnkE_AooPKLGGyn2EjmBXmE_H-yycsr9Mo23naS_82_yxjqaariONWeBFYIMRfHu4C5K9bKROV1Iw_VxQ_mu1w0UELMWQYkfWE6jqZHUe8WyIEmt_SlVgyvnz2XADC-LrJq5vtv5b1a2II1Qj6OmtcfH22wYyhIJXTLR66ZyHC32wWXOeJC31sxVmFpZQQelcRGiDcP0tUUTj2g6rmpsqa19Jtewgza_dzhPrEEgkhgcHg"/>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">David C.</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-on-surface">10,900</p>
+</div>
+</div>
+<div class="h-px w-full bg-surface-variant/50 ml-12"></div>
+<!-- Rank Item 6 -->
+<div class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-variant/30 transition-colors">
+<div class="w-8 text-center font-label-md text-on-surface-variant">6</div>
+<img class="w-10 h-10 rounded-full object-cover bg-surface-variant" data-alt="Avatar portrait of a young person with short dyed blue hair, illustrated in a warm, tactile modern vector style, wearing a hoodie against a soft cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByMlabodQR_vlMYPzwGFAO-x0tOSjYiXlEY2w2nO9UxZEj5GvXP12Hpjawtz5HT3vwl2W14cy3-Z4WemR6iDZKcbHDUMRFzu-N9avnJVlgsvWvxTgf7UHALYNnt2z7N8r6hyfxyqr7Vx81B_CN6i6vDIODDN8qLWI-QC-DFgXAuvBvozbDfpEOhZ09yZ3uPNFb12F6MUNtiQpGp0BCcWNyBpccQfHHliJPgPGA4fS_hc44VrgV2YxKMg"/>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">Sam K.</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-on-surface">9,850</p>
+</div>
+</div>
+<div class="h-px w-full bg-surface-variant/50 ml-12"></div>
+<!-- Rank Item 7 -->
+<div class="flex items-center gap-sm p-sm rounded-lg hover:bg-surface-variant/30 transition-colors">
+<div class="w-8 text-center font-label-md text-on-surface-variant">7</div>
+<img class="w-10 h-10 rounded-full object-cover bg-surface-variant" data-alt="Avatar portrait of a woman with a wide smile and hoop earrings, illustrated in a warm, tactile modern vector style, against a soft cream background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1n8wt7ddgoJE_VFisxHZgZNoYaoLN_21ynt8MFSIiWh6LY7jeWjVhso3_LcztD71kvrCs9A2fg-TmeHJI0bNMJ2AjNksIbzMO6s2xe4ySU5Ygzha6FpeWu91r-v4-V1BkEW8OT81PICbVXiE_SFCInwb0KUROzvR8jbyWW9jKiAnB4QpX9Y6DaRTQ_hL0x7zzoYapZG4zXbTU0HQoy1Bsd6eWegiXoANk9cyp0DCWoexBOo7VEBxHzg"/>
+<div class="flex-1">
+<p class="font-label-md text-on-surface">Chloe B.</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-on-surface">9,120</p>
+</div>
+</div>
+<button class="mt-sm py-sm text-center font-label-md text-primary hover:bg-primary/5 rounded-lg transition-colors">
+                        Load More
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Navigation Bar -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest dark:bg-surface-container-low shadow-sm rounded-t-xl text-primary dark:text-primary-fixed-dim">
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors p-2 rounded-lg">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors p-2 rounded-lg">
+<span class="material-symbols-outlined">category</span>
+<span class="font-label-sm text-label-sm mt-1">Categories</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 hover:bg-surface-variant/50 transition-colors scale-90 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<span class="font-label-sm text-label-sm mt-1">Leaders</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors p-2 rounded-lg">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</button>
+</nav>
+</body></html>

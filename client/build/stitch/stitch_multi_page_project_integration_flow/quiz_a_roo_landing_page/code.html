@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quiz-a-roo | Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&amp;family=Be+Vietnam+Pro:wght@400&amp;family=Work+Sans:wght@500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container": "#eeeeed",
+                      "inverse-on-surface": "#f1f0f0",
+                      "error": "#ba1a1a",
+                      "on-background": "#1a1c1c",
+                      "tertiary-fixed": "#ede3b8",
+                      "on-primary-fixed": "#2f1500",
+                      "surface-container-low": "#f4f3f2",
+                      "surface-bright": "#faf9f8",
+                      "error-container": "#ffdad6",
+                      "surface-container-high": "#e9e8e7",
+                      "on-secondary-fixed": "#351000",
+                      "on-surface": "#1a1c1c",
+                      "tertiary": "#665f3d",
+                      "surface-tint": "#904d00",
+                      "primary-container": "#b15f00",
+                      "outline": "#887364",
+                      "inverse-primary": "#ffb77d",
+                      "secondary-fixed": "#ffdbcc",
+                      "secondary-container": "#fd9e70",
+                      "primary": "#8d4b00",
+                      "outline-variant": "#dbc2b0",
+                      "tertiary-fixed-dim": "#d1c79d",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-container": "#b5ac84",
+                      "on-error": "#ffffff",
+                      "on-primary-container": "#fffbff",
+                      "surface-dim": "#dadad9",
+                      "on-tertiary-fixed-variant": "#4d4727",
+                      "surface-variant": "#e3e2e1",
+                      "on-tertiary-fixed": "#201c02",
+                      "surface-container-highest": "#e3e2e1",
+                      "on-primary": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "primary-fixed-dim": "#ffb77d",
+                      "surface-container-lowest": "#ffffff",
+                      "on-secondary-container": "#76340e",
+                      "background": "#faf9f8",
+                      "on-secondary-fixed-variant": "#76330d",
+                      "primary-fixed": "#ffdcc3",
+                      "inverse-surface": "#2f3130",
+                      "surface": "#faf9f8",
+                      "on-primary-fixed-variant": "#6e3900",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary-container": "#464021",
+                      "secondary-fixed-dim": "#ffb693",
+                      "secondary": "#944a23",
+                      "on-surface-variant": "#554336"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-mobile": "16px",
+                      "md": "24px",
+                      "margin-desktop": "64px",
+                      "gutter": "20px",
+                      "lg": "48px",
+                      "xs": "4px",
+                      "sm": "12px",
+                      "xl": "80px",
+                      "base": "8px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "body-md": ["Be Vietnam Pro"],
+                      "headline-lg-mobile": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "headline-xl": ["Plus Jakarta Sans"],
+                      "label-sm": ["Work Sans"],
+                      "body-lg": ["Be Vietnam Pro"],
+                      "label-md": ["Work Sans"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                      "headline-xl": ["40px", {"lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .material-symbols-outlined {
+                font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            }
+            .icon-fill {
+                font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col md:flex-row">
+<!-- Mobile Nav (Top) -->
+<header class="md:hidden flex justify-between items-center px-margin-mobile h-16 w-full bg-background sticky top-0 z-40 flat no shadows">
+<div class="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity scale-95 active:transition-transform duration-100">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</div>
+<div class="font-headline-md text-headline-md-mobile text-primary font-bold">Quiz-a-roo</div>
+<div class="flex items-center gap-4 text-primary">
+<span class="material-symbols-outlined hover:opacity-80 transition-opacity cursor-pointer scale-95 active:transition-transform duration-100" data-icon="account_circle">account_circle</span>
+<span class="material-symbols-outlined hover:opacity-80 transition-opacity cursor-pointer scale-95 active:transition-transform duration-100" data-icon="leaderboard">leaderboard</span>
+</div>
+</header>
+<!-- Desktop Side Nav -->
+<aside class="hidden md:flex flex-col h-screen w-64 bg-surface-bright shadow-lg sticky top-0 z-40 py-md px-sm shrink-0">
+<div class="mb-lg px-4">
+<div class="font-headline-lg text-primary mb-2">Quiz-a-roo</div>
+<div class="flex items-center gap-3 mt-4">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold">
+                    QM
+                </div>
+<div>
+<div class="font-label-md text-on-surface">Quiz Master</div>
+<div class="font-label-sm text-on-surface-variant">Level 12 • 4500 XP</div>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-primary font-bold border-r-4 border-primary bg-primary-fixed/10 transition-all duration-200" href="#">
+<span class="material-symbols-outlined icon-fill" data-icon="home">home</span>
+<span class="font-label-md">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span class="font-label-md">My Stats</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+<span class="font-label-md">High Scores</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+<span class="font-label-md">About</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-full text-on-surface-variant hover:bg-primary-fixed/20 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto px-4">
+<button class="w-full py-3 bg-secondary-container text-on-secondary-container rounded-full font-label-md hover:bg-secondary-fixed transition-colors">
+                Upgrade to Pro
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col w-full max-w-[1200px] mx-auto pb-24 md:pb-8 relative">
+<!-- Hero Section -->
+<section class="px-margin-mobile md:px-margin-desktop py-lg md:py-xl flex flex-col items-center text-center">
+<div class="relative w-48 h-48 md:w-64 md:h-64 mb-8">
+<div class="absolute inset-0 bg-tertiary-fixed rounded-full animate-pulse opacity-50 blur-xl"></div>
+<img class="w-full h-full object-contain relative z-10" data-alt="A highly stylized, friendly cartoon kangaroo mascot wearing scholar glasses and holding a small book. The illustration is vector-based, modern, and playful, using a warm palette of oranges and browns on a soft cream background, perfect for an educational trivia app. Clean lines and subtle shading." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_OqxHHuC8TjnhC-ooxVx0gWAm7Nbm4RO0pwUiada1_a0dJx2tCxdW0RHq3Kar36JAVLCZ-Px222SAtDmuCRxXvr3GhNEUFXfrMnFbptFT5ehooaEUWvcGnI8ppXxVB4islPWElyG-dztNJ2F0_hocsZQD_bPiEhrq_1qYB4PtjNWolohXfb4opHRKGaGmOhd29cXxxl6xI5r5lwFkzwpVtVdOBi6ufGbRXTLSfuWsfrvBvY3fXOnuWA"/>
+</div>
+<h1 class="font-headline-xl text-primary mb-4 max-w-2xl">
+                Ready to Test Your Knowledge?
+            </h1>
+<p class="font-body-lg text-on-surface-variant mb-8 max-w-xl">
+                Join thousands of players in the ultimate trivia adventure. Discover new facts, climb the leaderboard, and become a Quiz Master!
+            </p>
+<button class="bg-primary text-on-primary font-headline-md py-4 px-12 rounded-full shadow-[0_8px_20px_rgba(141,75,0,0.2)] hover:-translate-y-1 hover:shadow-[0_12px_24px_rgba(141,75,0,0.3)] transition-all duration-300 active:scale-95">
+                Start Quiz
+            </button>
+</section>
+<!-- Bento Grid: How to Play & Features -->
+<section class="px-margin-mobile md:px-margin-desktop py-lg grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Daily Challenge Card (Spans 8 cols on desktop) -->
+<div class="md:col-span-8 bg-surface-container-low rounded-[2rem] p-8 shadow-sm flex flex-col md:flex-row items-center gap-8 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-fixed-dim rounded-full blur-3xl opacity-20 -mr-20 -mt-20 transition-transform duration-700 group-hover:scale-150"></div>
+<div class="flex-1 relative z-10">
+<div class="inline-flex items-center gap-2 bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full font-label-sm mb-4">
+<span class="material-symbols-outlined text-[16px]" data-icon="local_fire_department">local_fire_department</span>
+                        Daily Challenge
+                    </div>
+<h2 class="font-headline-lg text-on-surface mb-2">The Brain Teaser</h2>
+<p class="font-body-md text-on-surface-variant mb-6">Complete today's special category mix to earn double XP and an exclusive badge.</p>
+<button class="font-label-md text-primary border-2 border-primary py-2 px-6 rounded-full hover:bg-primary-container hover:text-on-primary-container transition-colors">
+                        Play Daily
+                    </button>
+</div>
+<div class="w-32 h-32 md:w-48 md:h-48 shrink-0 relative z-10">
+<img class="w-full h-full object-cover rounded-xl shadow-lg" data-alt="A 3D rendering of a glowing, golden question mark trophy surrounded by floating geometric shapes (cubes, spheres) in soft pastel colors. The lighting is warm and studio-like, creating soft shadows on a cream-colored pedestal. High quality, tactile modernism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8_tscwAP4TZLvqC9O9KieyymwroT7nICN9av_VnQeWvwlkM6-DGatx5joQDd_j-w2FxbZBo7PI6EDVbLCPXF1tiY55tdKBmP-CdorQzPB0wbliDdIUmxyYetu40wacd4Q-tmnMH86jjE_O-kqWQVNpFtItvrHiic-gsl64AQ5nVDYLxtZLLOlFISfwCcmKGrfl5roZ24OLneofymtMfUS0Pc9r-ympLzfMIo8BE0vQpOiwBrYrsMgdw"/>
+</div>
+</div>
+<!-- Stats Mini Card (Spans 4 cols on desktop) -->
+<div class="md:col-span-4 bg-tertiary-fixed text-on-tertiary-fixed rounded-[2rem] p-8 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-headline-md">Your Streak</h3>
+<span class="material-symbols-outlined text-tertiary" data-icon="bolt">bolt</span>
+</div>
+<div class="font-headline-xl text-tertiary mb-1">5 Days</div>
+<p class="font-body-md opacity-80">Keep it up! 2 days until next reward.</p>
+</div>
+<div class="mt-8 flex gap-1 h-2 rounded-full overflow-hidden bg-tertiary-fixed-dim">
+<div class="w-1/5 bg-tertiary h-full"></div>
+<div class="w-1/5 bg-tertiary h-full"></div>
+<div class="w-1/5 bg-tertiary h-full"></div>
+<div class="w-1/5 bg-tertiary h-full"></div>
+<div class="w-1/5 bg-tertiary h-full"></div>
+</div>
+</div>
+<!-- Categories Bento (Spans 12 cols) -->
+<div class="md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+<div class="bg-surface-container rounded-2xl p-6 text-center hover:bg-surface-container-high cursor-pointer transition-colors group">
+<div class="w-12 h-12 mx-auto bg-primary-fixed text-on-primary-fixed rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+</div>
+<span class="font-label-md text-on-surface">Geography</span>
+</div>
+<div class="bg-surface-container rounded-2xl p-6 text-center hover:bg-surface-container-high cursor-pointer transition-colors group">
+<div class="w-12 h-12 mx-auto bg-secondary-fixed text-on-secondary-fixed rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+</div>
+<span class="font-label-md text-on-surface">Science</span>
+</div>
+<div class="bg-surface-container rounded-2xl p-6 text-center hover:bg-surface-container-high cursor-pointer transition-colors group">
+<div class="w-12 h-12 mx-auto bg-tertiary-fixed text-on-tertiary-fixed rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="history_edu">history_edu</span>
+</div>
+<span class="font-label-md text-on-surface">History</span>
+</div>
+<div class="bg-surface-container rounded-2xl p-6 text-center hover:bg-surface-container-high cursor-pointer transition-colors group flex flex-col justify-center items-center">
+<span class="font-label-md text-primary mb-1">View All</span>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-safe bg-surface-container-lowest shadow-sm rounded-t-xl">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 Active: scale-90 duration-200" href="#">
+<span class="material-symbols-outlined icon-fill" data-icon="home">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors Active: scale-90 duration-200 px-4 py-1 rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="category">category</span>
+<span class="font-label-sm text-label-sm mt-1">Categories</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors Active: scale-90 duration-200 px-4 py-1 rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="military_tech">military_tech</span>
+<span class="font-label-sm text-label-sm mt-1">Leaders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-variant/50 transition-colors Active: scale-90 duration-200 px-4 py-1 rounded-full" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+</body></html>
