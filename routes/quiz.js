@@ -7,11 +7,17 @@ const OPENAI_BASE_URL =
   process.env.OPENAI_BASE_URL || (IS_GROQ_KEY ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1');
 
 // Active and verified Groq / OpenAI models
-const GROQ_MODELS = ['openai/gpt-oss-20b', 'qwen/qwen3.8-27b', 'qwen/qwen3.6-27b', 'openai/gpt-oss-120b'];
+const GROQ_MODELS = [
+  'qwen/qwen3.8-27b',
+  'qwen/qwen3.6-27b',
+  'openai/gpt-oss-120b',
+  'groq/compound-mini',
+  'openai/gpt-oss-20b'
+];
 const OPENAI_MODELS = ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'];
 
 const DEFAULT_MODEL =
-  process.env.OPENAI_MODEL?.trim() || (IS_GROQ_KEY ? 'openai/gpt-oss-20b' : 'gpt-4o-mini');
+  process.env.OPENAI_MODEL?.trim() || (IS_GROQ_KEY ? 'qwen/qwen3.8-27b' : 'gpt-4o-mini');
 
 const MODEL_FALLBACKS = Array.from(
   new Set([DEFAULT_MODEL, ...(IS_GROQ_KEY ? GROQ_MODELS : OPENAI_MODELS)].filter(Boolean))
@@ -132,6 +138,23 @@ const CURATED_TRIVIA_BANK = [
   { topic: 'Geography', difficulty: 'hard', question: 'What is the world deepest lake by maximum depth (over 1,600 meters)?', options: ['Lake Baikal', 'Lake Tanganyika', 'Caspian Sea', 'Lake Superior'], answerIndex: 0 },
   { topic: 'Geography', difficulty: 'hard', question: 'Which country has the most natural islands in the world (over 260,000)?', options: ['Sweden', 'Norway', 'Finland', 'Canada'], answerIndex: 0 },
 
+  // Sports & Cricket - Easy
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'easy', question: 'How many players are on the field for one cricket team during a match?', options: ['11', '9', '10', '12'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'easy', question: 'What is the term when a cricket batter is dismissed on the very first ball they face?', options: ['Golden duck', 'Silver duck', 'Diamond catch', 'Clean bowled'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'easy', question: 'How many runs are awarded if the ball is hit over the boundary rope on the full without bouncing?', options: ['6', '4', '5', '8'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'easy', question: 'Which equipment item does a wicketkeeper wear that regular outfielders cannot wear?', options: ['Webbed catching gloves', 'Helmet', 'Thigh guard', 'Chest protector'], answerIndex: 0 },
+
+  // Sports & Cricket - Medium
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'medium', question: 'Who holds the world record for scoring 100 international centuries across all formats?', options: ['Sachin Tendulkar', 'Virat Kohli', 'Ricky Ponting', 'Jacques Kallis'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'medium', question: 'What mathematical method is used to calculate revised targets in rain-affected limited-overs matches?', options: ['Duckworth-Lewis-Stern method', 'Hawkeye formula', 'Snickometer index', 'Pythagorean run rate'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'medium', question: 'Which country won the inaugural ICC Men T20 World Cup held in South Africa in 2007?', options: ['India', 'Pakistan', 'Australia', 'West Indies'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'medium', question: 'What is the standard length of a cricket pitch between the wickets?', options: ['22 yards (20.12 m)', '20 yards (18.29 m)', '24 yards (21.95 m)', '25 yards (22.86 m)'], answerIndex: 0 },
+
+  // Sports & Cricket - Hard
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'hard', question: 'Who was the first bowler in Test cricket history to take all 10 wickets in a single innings?', options: ['Jim Laker', 'Anil Kumble', 'Ajaz Patel', 'Sydney Barnes'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'hard', question: 'What was the highest individual score in a single Test match innings, scored by Brian Lara against England in 2004?', options: ['400 not out', '375', '380', '405 not out'], answerIndex: 0 },
+  { topic: 'Sports', subtopic: 'Cricket', difficulty: 'hard', question: 'Which legendary Sri Lankan spinner holds the record for the most Test wickets in history (800 wickets)?', options: ['Muttiah Muralitharan', 'Shane Warne', 'James Anderson', 'Anil Kumble'], answerIndex: 0 },
+
   // Technology - Easy
   { topic: 'Technology', difficulty: 'easy', question: 'What does "CPU" stand for in computer hardware?', options: ['Central Processing Unit', 'Computer Personal Unit', 'Central Power Utility', 'Control Processing Unit'], answerIndex: 0 },
   { topic: 'Technology', difficulty: 'easy', question: 'Which operating system is represented by a green robot mascot?', options: ['Android', 'iOS', 'Linux', 'Windows'], answerIndex: 0 },
@@ -152,39 +175,93 @@ function buildLocalQuiz({ topic, difficulty, numQuestions }) {
   const safeDiff = String(difficulty || 'medium').toLowerCase().trim();
   const total = Math.max(3, Number(numQuestions) || 5);
 
+  const isCricket = safeTopic.includes('cricket') || safeTopic.includes('cric') || safeTopic.includes('ipl') || safeTopic.includes('t20');
+  const isSports = isCricket || safeTopic.includes('sport') || safeTopic.includes('football') || safeTopic.includes('soccer') || safeTopic.includes('tennis') || safeTopic.includes('olympic');
+
   // Filter bank by matching topic & difficulty
   let matched = CURATED_TRIVIA_BANK.filter((item) => {
-    const topicMatch =
-      item.topic.toLowerCase().includes(safeTopic) ||
-      safeTopic.includes(item.topic.toLowerCase().split(' ')[0]);
+    const itemTopic = item.topic.toLowerCase();
+    const itemSub = (item.subtopic || '').toLowerCase();
     const diffMatch = item.difficulty === safeDiff;
+
+    let topicMatch = false;
+    if (isCricket) {
+      topicMatch = itemSub === 'cricket';
+    } else if (isSports) {
+      topicMatch = itemTopic.includes('sport');
+    } else {
+      topicMatch =
+        itemTopic.includes(safeTopic) ||
+        safeTopic.includes(itemTopic.split(' ')[0]);
+    }
     return topicMatch && diffMatch;
   });
 
-  // If not enough exact matches, widen to matching difficulty
+  // If not enough exact matches, widen to matching topic across other difficulties first
   if (matched.length < total) {
-    const diffOnly = CURATED_TRIVIA_BANK.filter((item) => item.difficulty === safeDiff);
-    matched = [...matched, ...diffOnly];
+    const topicOtherDiff = CURATED_TRIVIA_BANK.filter((item) => {
+      const itemTopic = item.topic.toLowerCase();
+      const itemSub = (item.subtopic || '').toLowerCase();
+      if (isCricket) return itemSub === 'cricket';
+      if (isSports) return itemTopic.includes('sport');
+      return itemTopic.includes(safeTopic) || safeTopic.includes(itemTopic.split(' ')[0]);
+    });
+    matched = [...matched, ...topicOtherDiff];
+  }
+
+  // Deduplicate matched questions
+  const seenQ = new Set();
+  const uniqueMatched = [];
+  for (const item of matched) {
+    if (!seenQ.has(item.question)) {
+      seenQ.add(item.question);
+      uniqueMatched.push(item);
+    }
   }
 
   // Shuffle and pick
-  const shuffled = shuffleArray(matched);
+  const shuffled = shuffleArray(uniqueMatched);
   const selected = shuffled.slice(0, total);
 
-  // If still need more, generate dynamic questions for that topic & difficulty
+  // If still need more, generate dynamic questions specifically tailored for this topic
+  const topicTemplates = [
+    {
+      q: `Which notable milestone or historic record is celebrated in ${topic}?`,
+      opts: [`World-record historical milestone in ${topic}`, `Disqualified unofficial exhibition mark`, `Unverified modern urban myth`, `Pre-season regional scrimmage record`],
+      ans: 0
+    },
+    {
+      q: `In professional competition within ${topic}, which standard rule is universally enforced?`,
+      opts: [`Standard international regulatory framework of ${topic}`, `Optional unwritten casual convention`, `Retired 19th-century informal guideline`, `Experimental local tournament rule`],
+      ans: 0
+    },
+    {
+      q: `Which prestigious championship or event represents the premier competition in ${topic}?`,
+      opts: [`Premier Global Championship of ${topic}`, `Junior invitational warm-up tour`, `Regional exhibition showcase`, `Defunct preliminary qualifying tier`],
+      ans: 0
+    },
+    {
+      q: `What key strategy or fundamental mechanic is essential for mastery in ${topic}?`,
+      opts: [`Optimal precision timing and tactical positioning`, `Passive hesitation and delayed reactions`, `Uncalculated reckless aggression`, `Static non-adaptive playstyle`],
+      ans: 0
+    },
+    {
+      q: `Which legendary figure is widely celebrated as an all-time pioneer in ${topic}?`,
+      opts: [`Multiple-time world champion icon of ${topic}`, `First-year rookie amateur`, `Fictional cinematic character`, `Guest exhibition commentator`],
+      ans: 0
+    }
+  ];
+
+  let tIdx = 0;
   while (selected.length < total) {
-    const idx = selected.length + 1;
+    const tmpl = topicTemplates[tIdx % topicTemplates.length];
+    tIdx++;
     selected.push({
       topic: safeTopic,
       difficulty: safeDiff,
-      question: `In ${difficulty.toUpperCase()} ${topic}, which fact demonstrates verified understanding?`,
-      options: [
-        `Core verified principle #${idx} of ${topic}`,
-        `Superficial misconception #${idx}`,
-        `Unrelated assumption`,
-        `Outdated incorrect claim`
-      ],
-      answerIndex: 0
+      question: tmpl.q,
+      options: tmpl.opts,
+      answerIndex: tmpl.ans
     });
   }
 
@@ -209,8 +286,16 @@ router.post('/generate-quiz', async (req, res) => {
       return res.json({ generated: buildLocalQuiz({ topic: safeTopic, difficulty: safeDifficulty, numQuestions: count }), source: 'fallback' });
     }
 
-    // Dynamic entropy to guarantee fresh questions on every single request
+    // Dynamic entropy & variety angles to guarantee completely fresh, unique questions every time
     const entropySeed = `${Date.now()}-${Math.floor(Math.random() * 1000000)}`;
+    const varietyAngles = [
+      'surprising world records, iconic milestones, and historic turnarounds',
+      'essential rules, strategic mechanics, scoring systems, and key technical terms',
+      'legendary champions, memorable tournament finals, and historical icons',
+      'lesser-known fascinating trivia, global records, and origins',
+      'modern achievements, contemporary stars, and premier records'
+    ];
+    const chosenAngle = varietyAngles[Math.floor(Math.random() * varietyAngles.length)];
 
     const difficultyInstructions = {
       easy: 'EASY LEVEL: Questions must be fun, accessible, and focus on well-known popular facts and basic fundamentals. Options must be distinct and clear.',
@@ -221,26 +306,31 @@ router.post('/generate-quiz', async (req, res) => {
     const diffGuide = difficultyInstructions[safeDifficulty] || difficultyInstructions.medium;
 
     const systemPrompt = `You are an elite, highly creative trivia quiz generator for the adventure game Quiz-A-Roo.
-Target Topic: "${safeTopic}"
+Target Subject: "${safeTopic}"
 Target Difficulty: "${safeDifficulty.toUpperCase()}"
+Variety Angle: Explore ${chosenAngle} within "${safeTopic}".
 ${diffGuide}
 
 CRITICAL RULES:
-1. Generate EXACTLY ${count} fresh, unique multiple-choice questions on "${safeTopic}".
+1. Generate EXACTLY ${count} fresh, unique multiple-choice questions EXCLUSIVELY about "${safeTopic}".
 2. STRICTLY tailor the complexity, depth, and vocabulary to the "${safeDifficulty.toUpperCase()}" difficulty level.
 3. Every question must have 4 distinct, plausible options.
 4. Distribute the correct answer evenly among options (do not always place it at index 0).
 5. Output ONLY a valid JSON object with key "questions" containing an array of question objects.
-6. Each question object must have:
+6. ANTI-REPETITION MANDATE: Do NOT generate common beginner cliché questions. Each question must test engaging, fresh knowledge strictly within "${safeTopic}".
+7. Each question object must have:
    - "id": number (1 to ${count})
    - "question": string
    - "options": array of exactly 4 strings
    - "answerIndex": number (0, 1, 2, or 3) pointing to the correct option.`;
 
-    const userPrompt = `Generate ${count} brand-new ${safeDifficulty} multiple-choice trivia questions for "${safeTopic}". Seed: ${entropySeed}. Return valid JSON only.`;
+    const userPrompt = `Generate ${count} brand-new, unique ${safeDifficulty} multiple-choice trivia questions EXCLUSIVELY about "${safeTopic}". Seed: ${entropySeed}. Angle: ${chosenAngle}. Return valid JSON only.`;
 
     let lastError = null;
     let parsed = null;
+
+    // Allocate safe token budget so Groq free tier limit (1000 OTPM) is never exceeded
+    const tokenLimit = Math.min(950, Math.max(550, count * 180));
 
     for (const modelName of MODEL_FALLBACKS) {
       try {
@@ -262,8 +352,8 @@ CRITICAL RULES:
               { role: 'user', content: userPrompt }
             ],
             response_format: { type: 'json_object' },
-            temperature: 0.85, // Higher temperature ensures fresh questions every time
-            max_tokens: 2200
+            temperature: 0.9, // Higher temperature guarantees diverse, fresh questions
+            max_tokens: tokenLimit
           }),
           signal: controller.signal
         });

@@ -85,10 +85,7 @@ export default function Quiz() {
     setMascotState('hit');
     setMascotMessage("Time's up, mate! Watch out! ⏰💥");
     setIsAnswerRevealed(true);
-
-    setTimeout(() => {
-      advanceQuestion();
-    }, 1500);
+    // User can now review the correct answer and click "Next Question ➡️" at their own pace
   };
 
   const selectOption = (optionIndex) => {
@@ -124,11 +121,7 @@ export default function Quiz() {
       setMascotState('hit');
       setMascotMessage('Oof! That bonked! Keep bouncing! 🥊💥');
     }
-
-    // Auto-advance after giving time to enjoy the Kangaroo animation
-    setTimeout(() => {
-      advanceQuestion(isCorrect ? score + 1 : score);
-    }, 1500);
+    // No auto-advance timeout: user controls when to proceed by clicking Next Question
   };
 
   const advanceQuestion = (currentScore = score) => {

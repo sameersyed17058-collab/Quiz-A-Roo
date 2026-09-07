@@ -15,6 +15,20 @@ const usersRouter = require('./routes/users');
 app.use('/api', quizRouter);
 app.use('/api', usersRouter);
 
+// Root Endpoint
+app.get('/', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Quiz-A-Roo backend API is running!',
+    clientUrl: 'http://localhost:3000',
+    endpoints: {
+      health: '/api/health',
+      generateQuiz: '/api/generate-quiz',
+      leaderboard: '/api/leaderboard'
+    }
+  });
+});
+
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Quiz-A-Roo API is running' });

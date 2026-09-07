@@ -27,7 +27,7 @@ export default function SelectTopic() {
   }
 
   const handleContinue = () => {
-    const topic = (custom || selected).trim();
+    const topic = (custom.trim() || selected).trim();
     if (!topic) {
       alert('Please select a topic or type one in manually.');
       return;

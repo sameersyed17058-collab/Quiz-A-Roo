@@ -2831,11 +2831,56 @@ button {
 }
 
 /* =========================================================================
-   RESPONSIVE ADJUSTMENTS
+   RESPONSIVE DESIGN SYSTEM (MOBILE & TABLET ADAPTATIONS)
    ========================================================================= */
+
 @media (max-width: 900px) {
-  .hero, .quiz-main-grid {
+  .hero {
     grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .quiz-main-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .mascot-display-panel {
+    flex-direction: row;
+    padding: 12px 18px;
+    gap: 14px;
+    align-items: center;
+    border-radius: 20px;
+  }
+
+  .mascot-mood-badge {
+    margin-bottom: 0;
+    order: 2;
+    margin-left: auto;
+  }
+
+  .mascot-display-panel .kangaroo-container {
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    margin: 0;
+  }
+
+  .mascot-display-panel .kangaroo-container.size-medium .kangaroo-figure {
+    width: 70px;
+    height: 76px;
+    flex-shrink: 0;
+  }
+
+  .mascot-display-panel .speech-bubble {
+    margin-bottom: 0;
+    padding: 8px 14px;
+    font-size: 0.85rem;
+    max-width: 320px;
+  }
+
+  .mascot-display-panel .speech-bubble::after {
+    display: none;
   }
 
   .topic-grid, .difficulty-grid {
@@ -2844,7 +2889,7 @@ button {
 
   .podium {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 16px;
   }
 
   .podium-card.first {
@@ -2856,7 +2901,7 @@ button {
   }
 
   .table-header-row, .user-row {
-    grid-template-columns: 50px 1fr auto;
+    grid-template-columns: 44px 1fr auto;
   }
 
   .th-quizzes, .quizzes-count {
@@ -2865,44 +2910,541 @@ button {
 }
 
 @media (max-width: 640px) {
+  /* Layout & Page Containers */
   .app-shell {
-    padding: 12px 12px 40px;
+    padding: 8px 8px 30px;
   }
 
+  .panel-shell {
+    padding: 18px 14px;
+    border-radius: 20px;
+  }
+
+  /* Compact Sticky Mobile Topbar */
   .topbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    position: sticky;
+    top: 0;
+    margin: 0 0 14px 0;
+    padding: 10px 14px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+  }
+
+  .brand-link {
+    order: 1;
+  }
+
+  .brand {
+    font-size: 1.25rem;
+    gap: 6px;
+  }
+
+  .brand-icon {
+    font-size: 1.4rem;
+  }
+
+  .topbar-user-badge, .topbar-login-link {
+    order: 2;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    gap: 6px;
+  }
+
+  .topbar-id-pill {
+    display: none;
   }
 
   .nav-links {
+    order: 3;
     width: 100%;
+    display: flex;
+    gap: 6px;
     overflow-x: auto;
-    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 0 2px;
   }
 
-  .topic-grid, .difficulty-grid, .history-stats-grid, .results-grid {
-    grid-template-columns: 1fr;
+  .nav-links::-webkit-scrollbar {
+    display: none;
   }
 
-  .stage-card {
-    width: 100%;
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    border-radius: 999px;
   }
 
-  .history-card {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  /* Quiz Page Mobile Optimizations */
+  .quiz-shell {
+    padding: 16px 12px;
   }
 
-  .history-card-right {
+  .quiz-header {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .quiz-stage-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .stage-title-pill, .difficulty-pill, .topic-pill {
+    font-size: 0.74rem;
+    padding: 3px 8px;
+  }
+
+  .quiz-header-right {
+    display: flex;
     justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .streak-badge {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+
+  .score-live-badge {
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+
+  .timer {
+    padding: 4px 10px;
+    font-size: 0.82rem;
+    gap: 4px;
+  }
+
+  .progress-bar-container {
+    margin-bottom: 12px;
+  }
+
+  .progress-bar {
+    height: 8px;
+  }
+
+  .progress-label {
+    font-size: 0.7rem;
+    margin-top: 4px;
+  }
+
+  /* Compact Kangaroo Mascot on Mobile Quiz */
+  .mascot-display-panel {
+    flex-direction: row;
+    padding: 8px 12px;
+    gap: 10px;
+    align-items: center;
+    border-radius: 16px;
+    margin-bottom: 10px;
+  }
+
+  .mascot-display-panel .kangaroo-container {
+    flex-direction: row;
+    gap: 8px;
+    margin: 0;
+    align-items: center;
+  }
+
+  .mascot-display-panel .kangaroo-container.size-medium .kangaroo-figure {
+    width: 52px;
+    height: 58px;
+    flex-shrink: 0;
+  }
+
+  .mascot-display-panel .speech-bubble {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    max-width: 190px;
+    border-radius: 14px;
+    margin-bottom: 0;
+  }
+
+  .mascot-mood-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    order: 2;
+    margin-left: auto;
+  }
+
+  .question-panel {
+    padding: 16px 14px;
+    border-radius: 18px;
+  }
+
+  .question-header-row {
+    margin-bottom: 10px;
+  }
+
+  .q-badge {
+    font-size: 0.74rem;
+  }
+
+  .xp-potential-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+  }
+
+  .question-text {
+    font-size: clamp(1.1rem, 4.2vw, 1.35rem);
+    line-height: 1.35;
+    margin-bottom: 16px;
+  }
+
+  .answer-list {
+    gap: 10px;
+  }
+
+  .answer-option {
+    padding: 12px 14px;
+    border-radius: 14px;
+    font-size: 0.92rem;
+    gap: 10px;
+  }
+
+  .option-letter {
+    width: 30px;
+    height: 30px;
+    font-size: 0.88rem;
+    border-radius: 10px;
+  }
+
+  .option-text {
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+
+  .feedback-icon {
+    font-size: 1.15rem;
+  }
+
+  .quiz-bottom-bar {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .exit-quiz-btn {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+  }
+
+  .next-q-btn {
+    flex: 1;
+    text-align: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 0.98rem;
+    border-radius: 14px;
+    font-weight: 900;
+  }
+
+  /* Select Topic Page */
+  .select-topic-shell {
+    padding: 16px 12px;
+  }
+
+  .topic-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .topic-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .topic-icon-wrap {
+    width: 44px;
+    height: 44px;
+  }
+
+  .topic-content h3 {
+    font-size: 1.05rem;
+  }
+
+  .topic-content p {
+    font-size: 0.82rem;
+  }
+
+  .custom-topic-panel {
+    padding: 16px 14px;
+    border-radius: 18px;
+    margin-top: 16px;
   }
 
   .custom-input-row {
     flex-direction: column;
+    gap: 10px;
+  }
+
+  .topic-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    border-radius: 14px;
   }
 
   .custom-next-btn {
     width: 100%;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    border-radius: 14px;
+  }
+
+  /* Select Difficulty Page */
+  .select-difficulty-shell {
+    padding: 16px 12px;
+  }
+
+  .difficulty-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .difficulty-card {
+    padding: 16px 14px;
+    border-radius: 18px;
+  }
+
+  .diff-action-bar {
+    flex-direction: column-reverse;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .diff-action-bar button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  /* Roadmap Page */
+  .roadmap-shell {
+    padding: 14px 10px;
+  }
+
+  .roadmap-header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 12px;
+    border-radius: 18px;
+  }
+
+  .roadmap-stats-badges {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .stars-banner, .stages-progress-badge {
+    padding: 8px 12px;
+    border-radius: 14px;
+    flex: 1;
+  }
+
+  .stars-count strong, .stage-num-bold {
+    font-size: 1.15rem;
+  }
+
+  .stage-node-wrap {
+    justify-content: center !important;
+  }
+
+  .stage-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .stage-topline {
+    gap: 10px;
+  }
+
+  .stage-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+  }
+
+  .stage-title-wrap h3 {
+    font-size: 1.05rem;
+  }
+
+  .stage-badge-row {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .stage-topic-badge, .difficulty-tag, .xp-reward-pill {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+  }
+
+  .stage-desc {
+    font-size: 0.84rem;
+    margin-bottom: 12px;
+  }
+
+  .stage-bottom-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .stage-action-btn {
+    width: 100%;
+    text-align: center;
+    padding: 10px 16px;
+    font-size: 0.92rem;
+  }
+
+  .replay-badge {
+    align-self: flex-start;
+  }
+
+  /* Results Page */
+  .result-shell {
+    padding: 16px 12px;
+  }
+
+  .result-card {
+    padding: 16px 12px;
+    border-radius: 18px;
+  }
+
+  .result-main-title {
+    font-size: 1.55rem;
+  }
+
+  .result-subtitle {
+    font-size: 0.88rem;
+  }
+
+  .result-stars-row {
+    gap: 8px;
+  }
+
+  .result-star-item {
+    padding: 8px 10px;
+  }
+
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .result-actions {
+    width: 100%;
+  }
+
+  .result-sub-actions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .result-sub-actions button {
+    width: 100%;
+  }
+
+  /* History Page */
+  .history-shell {
+    padding: 14px 10px;
+  }
+
+  .history-card {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .history-card-right {
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  /* Leaderboard Page */
+  .leaderboard-shell {
+    padding: 14px 10px;
+  }
+
+  .leaderboard-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-bar-wrap {
+    min-width: 100%;
+  }
+
+  .table-header-row, .user-row {
+    grid-template-columns: 36px 1fr auto auto;
+    padding: 10px 12px;
+    gap: 8px;
+    font-size: 0.84rem;
+  }
+
+  .user-avatar-small {
+    width: 28px;
+    height: 28px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-copy .hero-title {
+    font-size: 1.9rem;
+  }
+
+  .hero-desc {
+    font-size: 0.92rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .mini-card {
+    padding: 8px 4px;
+  }
+
+  .mini-card strong {
+    font-size: 1rem;
+  }
+
+  .mini-card span {
+    font-size: 0.65rem;
+  }
+
+  .hero-mascot-card .kangaroo-container.size-large .kangaroo-figure {
+    width: 150px;
+    height: 165px;
   }
 }
