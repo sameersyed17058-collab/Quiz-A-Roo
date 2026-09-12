@@ -5,22 +5,50 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-vercel-matched-path', 'x-matched-path']
+}));
+app.options('*', cors());
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 // Vercel Serverless Route Normalization:
-// When Vercel routes /api/register to server.js?_path=$1 or via x-vercel-matched-path,
+// When Vercel routes /api/register to /server.js?_path=$1 or via x-vercel-matched-path,
 // restore req.url to the actual requested route (/api/register) so Express routers match perfectly.
 app.use((req, res, next) => {
-  const matchedPath =
-    (req.query && req.query._path ? `/api/${req.query._path}` : null) ||
+  const queryPath = req.query && req.query._path
+    ? (req.query._path.startsWith('/') ? req.query._path : `/api/${req.query._path}`)
+    : null;
+
+  const headerPath =
     req.headers['x-vercel-matched-path'] ||
     req.headers['x-matched-path'] ||
-    req.headers['x-forwarded-uri'];
+    req.headers['x-forwarded-uri'] ||
+    req.headers['x-original-url'];
 
-  if (matchedPath && (req.url === '/' || req.url.includes('server.js') || req.url.includes('index.js'))) {
-    req.url = matchedPath;
+  const targetPath = queryPath || headerPath;
+
+  if (targetPath) {
+    const currentPath = req.url.split('?')[0];
+    if (
+      !currentPath.startsWith('/api') ||
+      currentPath === '/' ||
+      currentPath.includes('server.js') ||
+      currentPath.includes('index.js')
+    ) {
+      const queryIndex = req.url.indexOf('?');
+      let queryString = '';
+      if (queryIndex !== -1) {
+        const params = new URLSearchParams(req.url.slice(queryIndex + 1));
+        params.delete('_path');
+        const remaining = params.toString();
+        if (remaining) queryString = `?${remaining}`;
+      }
+      req.url = `${targetPath.split('?')[0]}${queryString}`;
+    }
   }
   next();
 });

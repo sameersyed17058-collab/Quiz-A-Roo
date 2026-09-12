@@ -18,10 +18,17 @@ async function parseResponse(res, fallbackError = 'Request failed') {
   }
 
   if (!res.ok) {
-    const errorMsg =
+    let errorMsg =
       (data && (data.error || data.message)) ||
-      (text && text.length < 200 && !text.includes('<html') ? text : null) ||
-      `${fallbackError} (Status ${res.status})`;
+      (text && text.length < 200 && !text.includes('<html') ? text : null);
+
+    if (!errorMsg) {
+      if (res.status === 405) {
+        errorMsg = 'Method Not Allowed (405): Server route rejected the request method. Please ensure serverless functions are deployed.';
+      } else {
+        errorMsg = `${fallbackError} (Status ${res.status})`;
+      }
+    }
     throw new Error(errorMsg);
   }
 
