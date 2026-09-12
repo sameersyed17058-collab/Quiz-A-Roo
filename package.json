@@ -20,6 +20,7 @@
     "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "pptxgenjs": "^4.0.1"
   }
 }
