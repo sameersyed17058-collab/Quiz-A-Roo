@@ -32,14 +32,14 @@ app.use((req, res, next) => {
   const targetPath = queryPath || headerPath;
 
   if (targetPath) {
-    const currentPath = req.url.split('?')[0];
+    const currentPath = (req.url || '').split('?')[0];
     if (
       !currentPath.startsWith('/api') ||
       currentPath === '/' ||
       currentPath.includes('server.js') ||
       currentPath.includes('index.js')
     ) {
-      const queryIndex = req.url.indexOf('?');
+      const queryIndex = (req.url || '').indexOf('?');
       let queryString = '';
       if (queryIndex !== -1) {
         const params = new URLSearchParams(req.url.slice(queryIndex + 1));
