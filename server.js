@@ -9,6 +9,22 @@ app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
+// Vercel Serverless Route Normalization:
+// When Vercel routes /api/register to server.js?_path=$1 or via x-vercel-matched-path,
+// restore req.url to the actual requested route (/api/register) so Express routers match perfectly.
+app.use((req, res, next) => {
+  const matchedPath =
+    (req.query && req.query._path ? `/api/${req.query._path}` : null) ||
+    req.headers['x-vercel-matched-path'] ||
+    req.headers['x-matched-path'] ||
+    req.headers['x-forwarded-uri'];
+
+  if (matchedPath && (req.url === '/' || req.url.includes('server.js') || req.url.includes('index.js'))) {
+    req.url = matchedPath;
+  }
+  next();
+});
+
 const quizRouter = require('./routes/quiz');
 const usersRouter = require('./routes/users');
 
