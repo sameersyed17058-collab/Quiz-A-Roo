@@ -180,7 +180,7 @@ async function ensureUser(playerName) {
 }
 
 // 1. REGISTER: Create a Brand New Explorer (Must be a unique name)
-router.post('/register', async (req, res) => {
+router.post(['/register', '/api/register'], async (req, res) => {
   try {
     const { playerName } = req.body;
     const cleanName = String(playerName || '').trim();
@@ -256,7 +256,7 @@ router.post('/register', async (req, res) => {
 });
 
 // 2. LOGIN: Log in with Explorer Name + Secret Explorer ID
-router.post('/login', async (req, res) => {
+router.post(['/login', '/api/login'], async (req, res) => {
   try {
     const { playerName, secretId } = req.body;
     const cleanName = String(playerName || '').trim();

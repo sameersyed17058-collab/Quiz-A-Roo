@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "server.js",
+      "src": "api/*.js",
       "use": "@vercel/node"
     },
     {
@@ -15,12 +15,40 @@
   ],
   "routes": [
     {
+      "src": "/api/register",
+      "dest": "/api/register.js"
+    },
+    {
+      "src": "/api/login",
+      "dest": "/api/login.js"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/api/health.js"
+    },
+    {
+      "src": "/api/leaderboard",
+      "dest": "/api/leaderboard.js"
+    },
+    {
+      "src": "/api/generate-quiz",
+      "dest": "/api/generate-quiz.js"
+    },
+    {
+      "src": "/api/quiz-result",
+      "dest": "/api/quiz-result.js"
+    },
+    {
+      "src": "/api/profile",
+      "dest": "/api/profile.js"
+    },
+    {
       "src": "/api/(.*)",
-      "dest": "/server.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/api",
-      "dest": "/server.js"
+      "dest": "/api/index.js"
     },
     {
       "src": "/static/(.*)",

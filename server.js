@@ -19,36 +19,44 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 // When Vercel routes /api/register to /server.js?_path=$1 or via x-vercel-matched-path,
 // restore req.url to the actual requested route (/api/register) so Express routers match perfectly.
 app.use((req, res, next) => {
+  const currentPath = (req.url || '').split('?')[0];
+
+  // If req.url is already a valid API sub-route (e.g. /api/register), keep it!
+  if (
+    currentPath.startsWith('/api') &&
+    currentPath !== '/api' &&
+    !currentPath.includes('server.js') &&
+    !currentPath.includes('index.js')
+  ) {
+    return next();
+  }
+
   const queryPath = req.query && req.query._path
     ? (req.query._path.startsWith('/') ? req.query._path : `/api/${req.query._path}`)
     : null;
 
-  const headerPath =
+  const rawHeader =
     req.headers['x-vercel-matched-path'] ||
     req.headers['x-matched-path'] ||
     req.headers['x-forwarded-uri'] ||
     req.headers['x-original-url'];
 
+  const headerPath = (rawHeader && rawHeader !== '/api' && rawHeader !== '/' && !rawHeader.includes('index.js'))
+    ? rawHeader
+    : null;
+
   const targetPath = queryPath || headerPath;
 
   if (targetPath) {
-    const currentPath = (req.url || '').split('?')[0];
-    if (
-      !currentPath.startsWith('/api') ||
-      currentPath === '/' ||
-      currentPath.includes('server.js') ||
-      currentPath.includes('index.js')
-    ) {
-      const queryIndex = (req.url || '').indexOf('?');
-      let queryString = '';
-      if (queryIndex !== -1) {
-        const params = new URLSearchParams(req.url.slice(queryIndex + 1));
-        params.delete('_path');
-        const remaining = params.toString();
-        if (remaining) queryString = `?${remaining}`;
-      }
-      req.url = `${targetPath.split('?')[0]}${queryString}`;
+    const queryIndex = (req.url || '').indexOf('?');
+    let queryString = '';
+    if (queryIndex !== -1) {
+      const params = new URLSearchParams(req.url.slice(queryIndex + 1));
+      params.delete('_path');
+      const remaining = params.toString();
+      if (remaining) queryString = `?${remaining}`;
     }
+    req.url = `${targetPath.split('?')[0]}${queryString}`;
   }
   next();
 });
