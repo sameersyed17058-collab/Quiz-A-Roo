@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const pdfParse = require('pdf-parse');
-const mammoth = require('mammoth');
-const officeParser = require('officeparser');
+// Heavy document parsers are lazy-loaded on demand inside extractDocumentText
+// to keep serverless lambda boot time fast and memory footprint small.
+let _pdfParse = null;
+let _mammoth = null;
+let _officeParser = null;
+function getPdfParse() { if (!_pdfParse) _pdfParse = require('pdf-parse'); return _pdfParse; }
+function getMammoth() { if (!_mammoth) _mammoth = require('mammoth'); return _mammoth; }
+function getOfficeParser() { if (!_officeParser) _officeParser = require('officeparser'); return _officeParser; }
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -705,11 +710,13 @@ async function extractDocumentText(buffer, originalName = '', mimetype = '') {
   // 1. PDF Documents
   if (nameLower.endsWith('.pdf') || mimetype === 'application/pdf') {
     try {
+      const pdfParse = getPdfParse();
       const pdfData = await pdfParse(buffer);
       extractedText = pdfData.text || '';
     } catch (pdfErr) {
       console.warn('pdf-parse failed, attempting officeParser for PDF:', pdfErr.message);
       try {
+        const officeParser = getOfficeParser();
         extractedText = await officeParser.parseOffice(buffer, { fileType: 'pdf', outputErrorToConsole: false });
       } catch (opErr) {
         console.warn('officeParser PDF fallback also failed:', opErr.message);
@@ -719,11 +726,13 @@ async function extractDocumentText(buffer, originalName = '', mimetype = '') {
   // 2. Microsoft Word (.docx)
   else if (nameLower.endsWith('.docx') || mimetype.includes('wordprocessingml')) {
     try {
+      const mammoth = getMammoth();
       const result = await mammoth.extractRawText({ buffer });
       extractedText = result.value || '';
     } catch (mammothErr) {
       console.warn('mammoth failed, trying officeParser for docx:', mammothErr.message);
       try {
+        const officeParser = getOfficeParser();
         extractedText = await officeParser.parseOffice(buffer, { fileType: 'docx', outputErrorToConsole: false });
       } catch (opErr) {
         console.warn('officeParser docx failed:', opErr.message);
@@ -733,6 +742,7 @@ async function extractDocumentText(buffer, originalName = '', mimetype = '') {
   // 3. Legacy Microsoft Word (.doc)
   else if (nameLower.endsWith('.doc') || mimetype.includes('msword')) {
     try {
+      const officeParser = getOfficeParser();
       extractedText = await officeParser.parseOffice(buffer, { fileType: 'doc', outputErrorToConsole: false });
     } catch (err) {
       console.warn('officeParser doc failed:', err.message);
@@ -742,6 +752,7 @@ async function extractDocumentText(buffer, originalName = '', mimetype = '') {
   else if (nameLower.endsWith('.pptx') || nameLower.endsWith('.ppt') || mimetype.includes('presentation')) {
     try {
       const ft = nameLower.endsWith('.ppt') ? 'ppt' : 'pptx';
+      const officeParser = getOfficeParser();
       extractedText = await officeParser.parseOffice(buffer, { fileType: ft, outputErrorToConsole: false });
     } catch (err) {
       console.warn('officeParser pptx failed:', err.message);
@@ -751,6 +762,7 @@ async function extractDocumentText(buffer, originalName = '', mimetype = '') {
   else if (nameLower.endsWith('.xlsx') || nameLower.endsWith('.xls') || mimetype.includes('spreadsheet')) {
     try {
       const ft = nameLower.endsWith('.xls') ? 'xls' : 'xlsx';
+      const officeParser = getOfficeParser();
       extractedText = await officeParser.parseOffice(buffer, { fileType: ft, outputErrorToConsole: false });
     } catch (err) {
       console.warn('officeParser xlsx failed:', err.message);
@@ -760,6 +772,7 @@ async function extractDocumentText(buffer, originalName = '', mimetype = '') {
   else if (nameLower.endsWith('.odt') || nameLower.endsWith('.odp') || nameLower.endsWith('.ods')) {
     try {
       const ext = nameLower.split('.').pop();
+      const officeParser = getOfficeParser();
       extractedText = await officeParser.parseOffice(buffer, { fileType: ext, outputErrorToConsole: false });
     } catch (err) {
       console.warn('officeParser odt failed:', err.message);
@@ -768,6 +781,7 @@ async function extractDocumentText(buffer, originalName = '', mimetype = '') {
   // 7. Rich Text Format (.rtf)
   else if (nameLower.endsWith('.rtf') || mimetype.includes('rtf')) {
     try {
+      const officeParser = getOfficeParser();
       extractedText = await officeParser.parseOffice(buffer, { fileType: 'rtf', outputErrorToConsole: false });
     } catch (err) {
       console.warn('officeParser rtf failed:', err.message);
