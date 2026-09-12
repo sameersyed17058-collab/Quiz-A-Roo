@@ -1,8 +1,8 @@
-export async function generateQuiz({ topic, difficulty, numQuestions = 5 }) {
+export async function generateQuiz({ topic, difficulty, numQuestions = 5, quizMode = 'theoretical' }) {
   const res = await fetch('/api/generate-quiz', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ topic, difficulty, numQuestions })
+    body: JSON.stringify({ topic, difficulty, numQuestions, quizMode })
   });
 
   if (!res.ok) {
@@ -97,4 +97,56 @@ export async function getLeaderboard() {
   const res = await fetch('/api/leaderboard');
   if (!res.ok) throw new Error('Failed to fetch leaderboard');
   return res.json();
+}
+
+export async function uploadDocument(file) {
+  const formData = new FormData();
+  formData.append('document', file);
+
+  const res = await fetch('/api/upload-document', {
+    method: 'POST',
+    body: formData
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to upload document');
+  return data;
+}
+
+export async function generateDocQuiz({ documentText, documentName, difficulty = 'medium', focus = 'comprehensive', numQuestions = 5, quizType = 'mcq' }) {
+  const res = await fetch('/api/generate-doc-quiz', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ documentText, documentName, difficulty, focus, numQuestions, quizType })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to generate exam prep quiz from document');
+
+  let questions = [];
+  if (data.generated?.questions) questions = data.generated.questions;
+  else if (Array.isArray(data.generated)) questions = data.generated;
+  else if (Array.isArray(data.questions)) questions = data.questions;
+
+  if (!questions.length) throw new Error('No questions generated from document');
+  return { questions, metadata: data };
+}
+
+export async function generateHangaroo({ topic, difficulty = 'medium', numQuestions = 5 }) {
+  const res = await fetch('/api/generate-hangaroo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic, difficulty, numQuestions })
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to generate Hangaroo word puzzles');
+
+  let questions = [];
+  if (data.generated?.questions) questions = data.generated.questions;
+  else if (Array.isArray(data.generated)) questions = data.generated;
+  else if (Array.isArray(data.questions)) questions = data.questions;
+
+  if (!questions.length) throw new Error('No puzzles generated');
+  return questions;
 }

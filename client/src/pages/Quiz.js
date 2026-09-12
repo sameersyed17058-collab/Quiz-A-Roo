@@ -6,11 +6,11 @@ import KangarooMascot from '../components/KangarooMascot';
 export default function Quiz() {
   const loc = useLocation();
   const nav = useNavigate();
-  const { topic, difficulty, numQuestions = 5, stageId, stageTitle, playerName } = loc.state || {};
+  const { topic, difficulty, numQuestions = 5, stageId, stageTitle, playerName, quizMode = 'theoretical', examDocName, initialQuestions } = loc.state || {};
   const currentPlayer = (playerName || localStorage.getItem('quizaroo-player-name') || '').trim();
 
-  const [loading, setLoading] = useState(true);
-  const [quiz, setQuiz] = useState([]);
+  const [loading, setLoading] = useState(!initialQuestions || !initialQuestions.length);
+  const [quiz, setQuiz] = useState(initialQuestions || []);
   const [answers, setAnswers] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(20);
@@ -29,6 +29,13 @@ export default function Quiz() {
       return;
     }
 
+    // If questions were already supplied from ExamPrep or caller
+    if (initialQuestions && initialQuestions.length > 0) {
+      setQuiz(initialQuestions);
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
     const loadQuiz = async () => {
       setLoading(true);
@@ -36,7 +43,8 @@ export default function Quiz() {
         const data = await generateQuiz({
           topic,
           difficulty,
-          numQuestions: Number(numQuestions) || 5
+          numQuestions: Number(numQuestions) || 5,
+          quizMode
         });
 
         const questionsList = Array.isArray(data) ? data : data.questions || [];
@@ -58,7 +66,7 @@ export default function Quiz() {
     return () => {
       isMounted = false;
     };
-  }, [topic, difficulty, numQuestions, currentPlayer, nav]);
+  }, [topic, difficulty, numQuestions, currentPlayer, nav, quizMode, initialQuestions]);
 
   // Question Timer
   useEffect(() => {
@@ -148,7 +156,9 @@ export default function Quiz() {
           stageId,
           stageTitle,
           playerName: currentPlayer,
-          maxStreak
+          maxStreak,
+          quizMode,
+          examDocName
         }
       });
       return;
@@ -169,15 +179,40 @@ export default function Quiz() {
     return `${minutes}:${seconds}`;
   }, [timeLeft]);
 
+  const renderQuestionText = (text) => {
+    if (!text) return null;
+    if (text.includes('```')) {
+      const parts = text.split(/(```[\s\S]*?```)/g);
+      return (
+        <div className="question-text-container">
+          {parts.map((part, idx) => {
+            if (part.startsWith('```') && part.endsWith('```')) {
+              const rawCode = part.slice(3, -3).replace(/^[a-zA-Z0-9_-]+\n/, '');
+              return (
+                <pre key={idx} className="code-snippet-box">
+                  <code>{rawCode.trim()}</code>
+                </pre>
+              );
+            }
+            const clean = part.trim();
+            return clean ? <h2 key={idx} className="question-text">{clean}</h2> : null;
+          })}
+        </div>
+      );
+    }
+    return <h2 className="question-text">{text}</h2>;
+  };
+
   if (loading) {
     return (
       <div className="panel-shell centered-panel">
         <div className="loading-card">
-          <KangarooMascot state="idle" size="medium" message="Generating your challenge questions..." />
+          <KangarooMascot state="idle" size="small" message="Generating your challenge questions..." />
           <div className="spinner" aria-hidden="true" />
           <h2>Preparing AI Outback Trivia...</h2>
           <p>
             Topic: <b>{topic}</b> • Difficulty: <b>{difficulty.toUpperCase()}</b>
+            {quizMode === 'code' ? ' • 💻 Code-based' : ''}
           </p>
         </div>
       </div>
@@ -206,6 +241,8 @@ export default function Quiz() {
         <div className="quiz-stage-info">
           {stageTitle ? (
             <span className="stage-title-pill">🗺️ {stageTitle}</span>
+          ) : examDocName ? (
+            <span className="stage-title-pill exam-prep-pill">📄 {examDocName}</span>
           ) : (
             <span className="stage-title-pill">🎯 Custom Match</span>
           )}
@@ -213,6 +250,12 @@ export default function Quiz() {
             {difficulty.toUpperCase()}
           </span>
           <span className="topic-pill">{topic}</span>
+          {quizMode === 'code' && (
+            <span className="mode-pill-badge code">💻 Code-based</span>
+          )}
+          {quizMode === 'theoretical' && (
+            <span className="mode-pill-badge theory">📚 Theoretical</span>
+          )}
         </div>
 
         <div className="quiz-header-right">
@@ -250,9 +293,9 @@ export default function Quiz() {
         {/* Kangaroo Mascot Section */}
         <div className="mascot-display-panel">
           <div className="mascot-mood-badge">
-            {mascotState === 'feeding' ? '🌟 Happy & Fed!' : mascotState === 'hit' ? '💥 Bonked!' : '🦘 Ready!'}
+            {mascotState === 'feeding' ? '🌟 Fed & Happy!' : mascotState === 'hit' ? '💥 Bonked!' : '🦘 Ready!'}
           </div>
-          <KangarooMascot state={mascotState} message={mascotMessage} size="medium" />
+          <KangarooMascot state={mascotState} message={mascotMessage} size="small" />
         </div>
 
         {/* Question Panel */}
@@ -264,7 +307,7 @@ export default function Quiz() {
             </span>
           </div>
 
-          <h2 className="question-text">{currentQuestion.question}</h2>
+          {renderQuestionText(currentQuestion.question)}
 
           {/* Options List */}
           <div className="answer-list">

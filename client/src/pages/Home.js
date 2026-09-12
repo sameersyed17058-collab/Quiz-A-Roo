@@ -193,7 +193,19 @@ export default function Home() {
                 className="primary-btn hero-primary-btn pulse-glow-btn"
                 onClick={() => nav('/roadmap')}
               >
-                🗺️ Continue Quest Roadmap
+                🗺️ Quest Roadmap
+              </button>
+              <button
+                className="secondary-btn"
+                onClick={() => nav('/exam-prep', { state: { playerName } })}
+              >
+                📄 Exam Prep
+              </button>
+              <button
+                className="secondary-btn"
+                onClick={() => nav('/hangaroo', { state: { playerName } })}
+              >
+                🦘 Hangaroo
               </button>
               <button
                 className="secondary-btn"
@@ -205,7 +217,7 @@ export default function Home() {
                 className="link-btn switch-btn"
                 onClick={handleLogout}
               >
-                Switch / Logout
+                Logout
               </button>
             </div>
           </div>
@@ -313,9 +325,10 @@ export default function Home() {
         )}
 
         <div className="hero-feature-tags">
-          <span className="ft-tag">🔒 Private Secret Explorer IDs</span>
-          <span className="ft-tag">⭐ Cross-Device Saved Levels</span>
-          <span className="ft-tag">🏆 Live Supabase Standings</span>
+          <span className="ft-tag clickable-tag" onClick={() => nav('/exam-prep')}>📄 Exam Prep Studio</span>
+          <span className="ft-tag clickable-tag" onClick={() => nav('/hangaroo')}>🦘 Hangaroo Blanks</span>
+          <span className="ft-tag">🔒 Secret Explorer IDs</span>
+          <span className="ft-tag">⭐ Saved Progress</span>
         </div>
       </div>
 

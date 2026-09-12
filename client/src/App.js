@@ -8,6 +8,8 @@ import Quiz from './pages/Quiz';
 import Results from './pages/Results';
 import Leaderboard from './pages/Leaderboard';
 import History from './pages/History';
+import HangarooQuiz from './pages/HangarooQuiz';
+import ExamPrep from './pages/ExamPrep';
 
 export default function App() {
   const [playerName, setPlayerName] = useState(localStorage.getItem('quizaroo-player-name') || '');
@@ -35,6 +37,8 @@ export default function App() {
           <NavLink className="nav-link" to="/">Home</NavLink>
           <NavLink className="nav-link" to="/roadmap">🗺️ Roadmap</NavLink>
           <NavLink className="nav-link" to="/select-topic">Categories</NavLink>
+          <NavLink className="nav-link" to="/hangaroo">🦘 Hangaroo</NavLink>
+          <NavLink className="nav-link" to="/exam-prep">📄 Exam Prep</NavLink>
           <NavLink className="nav-link" to="/history">📜 History</NavLink>
           <NavLink className="nav-link" to="/leaderboard">🏆 Leaderboard</NavLink>
         </nav>
@@ -59,6 +63,8 @@ export default function App() {
           <Route path="/select-topic" element={<SelectTopic />} />
           <Route path="/select-difficulty" element={<SelectDifficulty />} />
           <Route path="/quiz" element={<Quiz />} />
+          <Route path="/hangaroo" element={<HangarooQuiz />} />
+          <Route path="/exam-prep" element={<ExamPrep />} />
           <Route path="/results" element={<Results />} />
           <Route path="/history" element={<History />} />
           <Route path="/leaderboard" element={<Leaderboard />} />

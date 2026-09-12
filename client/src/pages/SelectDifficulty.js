@@ -36,7 +36,7 @@ const DIFFICULTIES = [
 
 export default function SelectDifficulty() {
   const loc = useLocation();
-  const { topic, playerName } = loc.state || {};
+  const { topic, playerName, quizMode = 'theoretical', quizFormat = 'mcq', stageId, stageTitle } = loc.state || {};
   const [difficulty, setDifficulty] = useState('medium');
   const nav = useNavigate();
   const currentPlayer = (playerName || localStorage.getItem('quizaroo-player-name') || '').trim();
@@ -59,14 +59,20 @@ export default function SelectDifficulty() {
     );
   }
 
-  const next = () => nav('/quiz', { state: { topic, difficulty, playerName: currentPlayer } });
+  const next = () => {
+    if (quizFormat === 'hangaroo') {
+      nav('/hangaroo', { state: { topic, difficulty, playerName: currentPlayer, quizMode } });
+    } else {
+      nav('/quiz', { state: { topic, difficulty, playerName: currentPlayer, quizMode, stageId, stageTitle } });
+    }
+  };
 
   return (
     <div className="panel-shell select-difficulty-shell">
       <div className="section-header compact">
         <div>
           <div className="eyebrow-badge">
-            Subject: {topic}
+            Subject: {topic} {quizMode === 'code' ? '• 💻 Code-based' : '• 📚 Theoretical'}
           </div>
           <h1>Choose Your Challenge Level</h1>
           <p className="subtitle">Higher difficulty unlocks greater XP rewards on the global leaderboard!</p>

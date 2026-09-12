@@ -1,5 +1,14 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const pdfParse = require('pdf-parse');
+const mammoth = require('mammoth');
+const officeParser = require('officeparser');
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 }
+});
 
 const OPENAI_KEY = (process.env.OPENAI_API_KEY || '').trim();
 const IS_GROQ_KEY = OPENAI_KEY.startsWith('gsk_');
@@ -167,34 +176,58 @@ const CURATED_TRIVIA_BANK = [
 
   // Technology - Hard
   { topic: 'Technology', difficulty: 'hard', question: 'In cryptography, what mathematical problem underlies the security of RSA encryption?', options: ['Prime Factorization of large integers', 'Discrete Logarithm problem', 'Elliptic Curve point addition', 'Knapsack Problem'], answerIndex: 0 },
-  { topic: 'Technology', difficulty: 'hard', question: 'In distributed systems, what does the "CAP" theorem state you can only guarantee two of?', options: ['Consistency, Availability, Partition tolerance', 'Concurrency, Accuracy, Performance', 'Capacity, Authorization, Persistence', 'Coherence, Authentication, Protocol'], answerIndex: 0 }
+  { topic: 'Technology', difficulty: 'hard', question: 'In distributed systems, what does the "CAP" theorem state you can only guarantee two of?', options: ['Consistency, Availability, Partition tolerance', 'Concurrency, Accuracy, Performance', 'Capacity, Authorization, Persistence', 'Coherence, Authentication, Protocol'], answerIndex: 0 },
+
+  // Programming & Code - Python
+  { topic: 'Programming', subtopic: 'Python', difficulty: 'easy', mode: 'code', question: 'What is the output of the following Python code snippet?\n```python\nprint(type([]) is list)\n```', options: ['True', 'False', '<class \'list\'>', 'TypeError'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'Python', difficulty: 'easy', mode: 'code', question: 'What does the following Python statement output?\n```python\nprint([1, 2] * 2)\n```', options: ['[1, 2, 1, 2]', '[2, 4]', '[[1, 2], [1, 2]]', 'TypeError: cannot multiply sequence'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'Python', difficulty: 'medium', mode: 'code', question: 'What is the output of the following Python code?\n```python\na = [1, 2, 3]\nb = a\nb.append(4)\nprint(len(a))\n```', options: ['4', '3', '5', 'Error: list modified in-place'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'Python', difficulty: 'medium', mode: 'code', question: 'What is the result of evaluate in Python?\n```python\nprint(bool("False"), bool(""))\n```', options: ['True False', 'False False', 'True True', 'False True'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'Python', difficulty: 'hard', mode: 'code', question: 'What does the following code print?\n```python\ndef add_item(val, lst=[]):\n    lst.append(val)\n    return lst\nadd_item(1)\nprint(add_item(2))\n```', options: ['[1, 2]', '[2]', '[1]', 'TypeError'], answerIndex: 0 },
+
+  // Programming & Code - JavaScript
+  { topic: 'Programming', subtopic: 'JavaScript', difficulty: 'easy', mode: 'code', question: 'What does `typeof NaN` evaluate to in JavaScript?\n```javascript\nconsole.log(typeof NaN);\n```', options: ['"number"', '"NaN"', '"undefined"', '"object"'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'JavaScript', difficulty: 'easy', mode: 'code', question: 'What is the output of the following JavaScript array transformation?\n```javascript\nconst arr = [1, 2, 3].map(n => n * 2);\nconsole.log(arr);\n```', options: ['[2, 4, 6]', '[1, 2, 3, 1, 2, 3]', '6', '[2, 2, 2]'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'JavaScript', difficulty: 'medium', mode: 'code', question: 'What is logged to the console in JavaScript?\n```javascript\nconsole.log(1 + "2" + 3);\n```', options: ['"123"', '6', '"15"', 'NaN'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'JavaScript', difficulty: 'medium', mode: 'code', question: 'What is the output of this equality check in modern JavaScript?\n```javascript\nconsole.log([] == ![]);\n```', options: ['true', 'false', 'TypeError', 'undefined'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'JavaScript', difficulty: 'hard', mode: 'code', question: 'What is the output of the following asynchronous code?\n```javascript\nconsole.log("A");\nsetTimeout(() => console.log("B"), 0);\nPromise.resolve().then(() => console.log("C"));\nconsole.log("D");\n```', options: ['A, D, C, B', 'A, B, C, D', 'A, D, B, C', 'C, A, D, B'], answerIndex: 0 },
+
+  // Programming & Code - General / C++ / Java / Algorithms
+  { topic: 'Programming', subtopic: 'C++', difficulty: 'medium', mode: 'code', question: 'In C++, what does the `*` operator do when placed before a pointer variable in an expression (`*ptr`)?', options: ['Dereferences the pointer to access the stored value', 'Allocates dynamic heap memory', 'Multiplies the memory address', 'Deletes the pointer from memory'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'Java', difficulty: 'medium', mode: 'code', question: 'In Java, what does the following comparison return?\n```java\nString s1 = new String("hi");\nString s2 = new String("hi");\nSystem.out.println(s1 == s2);\n```', options: ['false', 'true', 'NullPointerException', 'Compilation error'], answerIndex: 0 },
+  { topic: 'Programming', subtopic: 'Algorithms', difficulty: 'hard', mode: 'code', question: 'What is the worst-case time complexity of standard Quicksort algorithm when picking the first element as pivot on an already sorted array?', options: ['O(n²)', 'O(n log n)', 'O(n)', 'O(log n)'], answerIndex: 0 }
 ];
 
-function buildLocalQuiz({ topic, difficulty, numQuestions }) {
+function buildLocalQuiz({ topic, difficulty, numQuestions, quizMode = 'theoretical' }) {
   const safeTopic = String(topic || 'General Knowledge').toLowerCase().trim();
   const safeDiff = String(difficulty || 'medium').toLowerCase().trim();
+  const isCode = String(quizMode).toLowerCase().trim() === 'code';
   const total = Math.max(3, Number(numQuestions) || 5);
 
   const isCricket = safeTopic.includes('cricket') || safeTopic.includes('cric') || safeTopic.includes('ipl') || safeTopic.includes('t20');
   const isSports = isCricket || safeTopic.includes('sport') || safeTopic.includes('football') || safeTopic.includes('soccer') || safeTopic.includes('tennis') || safeTopic.includes('olympic');
+  const isProg = safeTopic.includes('program') || safeTopic.includes('code') || safeTopic.includes('python') || safeTopic.includes('java') || safeTopic.includes('c++') || safeTopic.includes('cpp') || safeTopic.includes('sql') || safeTopic.includes('react') || safeTopic.includes('web') || safeTopic.includes('algorithm') || safeTopic.includes('rust');
 
   // Filter bank by matching topic & difficulty
   let matched = CURATED_TRIVIA_BANK.filter((item) => {
     const itemTopic = item.topic.toLowerCase();
     const itemSub = (item.subtopic || '').toLowerCase();
     const diffMatch = item.difficulty === safeDiff;
+    const modeMatch = isCode ? item.mode === 'code' : true;
 
     let topicMatch = false;
     if (isCricket) {
       topicMatch = itemSub === 'cricket';
     } else if (isSports) {
       topicMatch = itemTopic.includes('sport');
+    } else if (isProg) {
+      topicMatch = itemTopic.includes('program') || itemTopic.includes('tech') || safeTopic.includes(itemSub);
     } else {
       topicMatch =
         itemTopic.includes(safeTopic) ||
         safeTopic.includes(itemTopic.split(' ')[0]);
     }
-    return topicMatch && diffMatch;
+    return topicMatch && diffMatch && modeMatch;
   });
 
   // If not enough exact matches, widen to matching topic across other difficulties first
@@ -202,9 +235,11 @@ function buildLocalQuiz({ topic, difficulty, numQuestions }) {
     const topicOtherDiff = CURATED_TRIVIA_BANK.filter((item) => {
       const itemTopic = item.topic.toLowerCase();
       const itemSub = (item.subtopic || '').toLowerCase();
+      const modeMatch = isCode ? item.mode === 'code' : true;
       if (isCricket) return itemSub === 'cricket';
       if (isSports) return itemTopic.includes('sport');
-      return itemTopic.includes(safeTopic) || safeTopic.includes(itemTopic.split(' ')[0]);
+      if (isProg) return itemTopic.includes('program') || itemTopic.includes('tech') || safeTopic.includes(itemSub);
+      return (itemTopic.includes(safeTopic) || safeTopic.includes(itemTopic.split(' ')[0])) && modeMatch;
     });
     matched = [...matched, ...topicOtherDiff];
   }
@@ -223,34 +258,62 @@ function buildLocalQuiz({ topic, difficulty, numQuestions }) {
   const shuffled = shuffleArray(uniqueMatched);
   const selected = shuffled.slice(0, total);
 
-  // If still need more, generate dynamic questions specifically tailored for this topic
-  const topicTemplates = [
-    {
-      q: `Which notable milestone or historic record is celebrated in ${topic}?`,
-      opts: [`World-record historical milestone in ${topic}`, `Disqualified unofficial exhibition mark`, `Unverified modern urban myth`, `Pre-season regional scrimmage record`],
-      ans: 0
-    },
-    {
-      q: `In professional competition within ${topic}, which standard rule is universally enforced?`,
-      opts: [`Standard international regulatory framework of ${topic}`, `Optional unwritten casual convention`, `Retired 19th-century informal guideline`, `Experimental local tournament rule`],
-      ans: 0
-    },
-    {
-      q: `Which prestigious championship or event represents the premier competition in ${topic}?`,
-      opts: [`Premier Global Championship of ${topic}`, `Junior invitational warm-up tour`, `Regional exhibition showcase`, `Defunct preliminary qualifying tier`],
-      ans: 0
-    },
-    {
-      q: `What key strategy or fundamental mechanic is essential for mastery in ${topic}?`,
-      opts: [`Optimal precision timing and tactical positioning`, `Passive hesitation and delayed reactions`, `Uncalculated reckless aggression`, `Static non-adaptive playstyle`],
-      ans: 0
-    },
-    {
-      q: `Which legendary figure is widely celebrated as an all-time pioneer in ${topic}?`,
-      opts: [`Multiple-time world champion icon of ${topic}`, `First-year rookie amateur`, `Fictional cinematic character`, `Guest exhibition commentator`],
-      ans: 0
-    }
-  ];
+  // If still need more, generate dynamic questions specifically tailored for this topic and mode
+  const topicTemplates = isCode
+    ? [
+        {
+          q: `What is the expected outcome of the following code snippet in ${topic}?\n\`\`\`${topic}\nfunction evaluate() {\n  let x = 10;\n  return x * 2;\n}\nconsole.log(evaluate());\n\`\`\``,
+          opts: ['20', '10', 'undefined', 'ReferenceError: x is not defined'],
+          ans: 0
+        },
+        {
+          q: `In ${topic}, which code construct is standard practice for defensive exception handling?`,
+          opts: ['try { ... } catch (error) { ... }', 'attempt { ... } rescue (error) { ... }', 'guard { ... } otherwise { ... }', 'check { ... } on_failure { ... }'],
+          ans: 0
+        },
+        {
+          q: `What is the runtime time complexity of accessing an element by index in a contiguous array in ${topic}?`,
+          opts: ['O(1) Constant Time', 'O(n) Linear Time', 'O(log n) Logarithmic Time', 'O(n²) Quadratic Time'],
+          ans: 0
+        },
+        {
+          q: `In ${topic}, which statement correctly explains how memory allocation behaves for primitive values?`,
+          opts: ['Primitive values are typically allocated directly on the call stack', 'Primitives always require dynamic heap garbage collection', 'Primitives must be manually freed with explicit pointer calls', 'Primitives are automatically converted to synchronized database locks'],
+          ans: 0
+        },
+        {
+          q: `Which syntax in ${topic} correctly specifies an anonymous arrow or lambda function returning a value?`,
+          opts: ['(param) => param * 2', 'function => (param * 2)', 'lambda: param -> { return * 2 }', 'def (param): return param * 2'],
+          ans: 0
+        }
+      ]
+    : [
+        {
+          q: `Which fundamental principle or architecture is central to ${topic}?`,
+          opts: [`Standard core specification and architectural model of ${topic}`, `Discredited legacy myth`, `Unverified third-party patch`, `Informal experimental rule`],
+          ans: 0
+        },
+        {
+          q: `In theoretical frameworks of ${topic}, what concept guarantees correct system behavior?`,
+          opts: [`Consistent abstraction and rigorous verification protocols`, `Ad-hoc variable guessing`, `Unchecked arbitrary assumptions`, `Non-deterministic side-effects`],
+          ans: 0
+        },
+        {
+          q: `Which notable milestone or historic evolution shaped modern ${topic}?`,
+          opts: [`Foundational standardization milestone in ${topic}`, `Cancelled draft proposal`, `Obsolete proprietary specification`, `Unpublished private workshop note`],
+          ans: 0
+        },
+        {
+          q: `What key mechanism or foundational paradigm is essential for mastery in ${topic}?`,
+          opts: [`Systematic algorithmic principles and structured patterns`, `Passive hesitation and delayed reactions`, `Uncalculated unstructured mutation`, `Static non-adaptive workflow`],
+          ans: 0
+        },
+        {
+          q: `Which pioneer or research breakthrough is widely celebrated as foundational to ${topic}?`,
+          opts: [`Pioneering architecture milestone in ${topic}`, `First-year introductory experiment`, `Fictional cinematic concept`, `Defunct deprecated prototype`],
+          ans: 0
+        }
+      ];
 
   let tIdx = 0;
   while (selected.length < total) {
@@ -272,18 +335,24 @@ function buildLocalQuiz({ topic, difficulty, numQuestions }) {
 
 router.post('/generate-quiz', async (req, res) => {
   try {
-    const { topic, difficulty, numQuestions = 5 } = req.body;
+    const { topic, difficulty, numQuestions = 5, quizMode = 'theoretical' } = req.body;
     if (!topic || !difficulty) {
       return res.status(400).json({ error: 'topic and difficulty required' });
     }
 
     const safeTopic = String(topic).trim();
     const safeDifficulty = String(difficulty).toLowerCase().trim();
+    const safeMode = String(quizMode).toLowerCase().trim();
+    const isCodeMode = safeMode === 'code';
     const count = Math.max(3, Math.min(10, Number(numQuestions) || 5));
 
     if (useFallback) {
       console.log('Serving curated trivia quiz (fallback mode).');
-      return res.json({ generated: buildLocalQuiz({ topic: safeTopic, difficulty: safeDifficulty, numQuestions: count }), source: 'fallback' });
+      return res.json({
+        generated: buildLocalQuiz({ topic: safeTopic, difficulty: safeDifficulty, numQuestions: count, quizMode: safeMode }),
+        source: 'fallback',
+        quizMode: safeMode
+      });
     }
 
     // Dynamic entropy & variety angles to guarantee completely fresh, unique questions every time
@@ -305,11 +374,19 @@ router.post('/generate-quiz', async (req, res) => {
 
     const diffGuide = difficultyInstructions[safeDifficulty] || difficultyInstructions.medium;
 
+    const modePromptGuide = isCodeMode
+      ? `\nQUIZ MODE: MANDATORY CODE-BASED QUESTIONS!
+- Every question MUST involve actual code snippets, syntax analysis, output tracing ("What is the output of the following code snippet?"), or bug finding in "${safeTopic}".
+- Format code snippets cleanly inside Markdown code blocks (e.g. \`\`\`${safeTopic} ... \`\`\`).
+- Distractors must represent plausible syntax variants, common error returns, or alternative outputs.`
+      : `\nQUIZ MODE: THEORETICAL. Emphasize theoretical concepts, memory models, definitions, architecture, and principles without raw execution blocks.`;
+
     const systemPrompt = `You are an elite, highly creative trivia quiz generator for the adventure game Quiz-A-Roo.
 Target Subject: "${safeTopic}"
 Target Difficulty: "${safeDifficulty.toUpperCase()}"
 Variety Angle: Explore ${chosenAngle} within "${safeTopic}".
 ${diffGuide}
+${modePromptGuide}
 
 CRITICAL RULES:
 1. Generate EXACTLY ${count} fresh, unique multiple-choice questions EXCLUSIVELY about "${safeTopic}".
@@ -324,7 +401,7 @@ CRITICAL RULES:
    - "options": array of exactly 4 strings
    - "answerIndex": number (0, 1, 2, or 3) pointing to the correct option.`;
 
-    const userPrompt = `Generate ${count} brand-new, unique ${safeDifficulty} multiple-choice trivia questions EXCLUSIVELY about "${safeTopic}". Seed: ${entropySeed}. Angle: ${chosenAngle}. Return valid JSON only.`;
+    const userPrompt = `Generate ${count} brand-new, unique ${safeDifficulty} multiple-choice trivia questions EXCLUSIVELY about "${safeTopic}". Mode: ${safeMode}. Seed: ${entropySeed}. Angle: ${chosenAngle}. Return valid JSON only.`;
 
     let lastError = null;
     let parsed = null;
@@ -334,7 +411,7 @@ CRITICAL RULES:
 
     for (const modelName of MODEL_FALLBACKS) {
       try {
-        console.log(`Generating ${safeDifficulty} quiz for "${safeTopic}" using model: ${modelName}`);
+        console.log(`Generating ${safeDifficulty} (${safeMode}) quiz for "${safeTopic}" using model: ${modelName}`);
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 16000);
@@ -352,7 +429,7 @@ CRITICAL RULES:
               { role: 'user', content: userPrompt }
             ],
             response_format: { type: 'json_object' },
-            temperature: 0.9, // Higher temperature guarantees diverse, fresh questions
+            temperature: 0.9,
             max_tokens: tokenLimit
           }),
           signal: controller.signal
@@ -378,7 +455,6 @@ CRITICAL RULES:
         }
 
         if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
-          // Shuffle options & randomize answerIndex to guarantee no Option-A bias
           const formattedQuestions = formatAndRandomizeQuestions(parsed.questions);
 
           console.log(`✅ Generated ${formattedQuestions.length} fresh ${safeDifficulty} questions using ${modelName}`);
@@ -387,7 +463,8 @@ CRITICAL RULES:
             source: 'llm',
             model: modelName,
             difficulty: safeDifficulty,
-            topic: safeTopic
+            topic: safeTopic,
+            quizMode: safeMode
           });
         }
 
@@ -399,22 +476,645 @@ CRITICAL RULES:
     }
 
     // If all LLM calls failed, serve curated fallback quiz
-    const fallbackQuiz = buildLocalQuiz({ topic: safeTopic, difficulty: safeDifficulty, numQuestions: count });
+    const fallbackQuiz = buildLocalQuiz({ topic: safeTopic, difficulty: safeDifficulty, numQuestions: count, quizMode: safeMode });
     console.warn('All LLM models failed; serving curated trivia fallback quiz.', lastError);
     return res.json({
       generated: fallbackQuiz,
       source: 'fallback',
       notice: 'Served curated trivia quiz',
-      error: lastError?.errText
+      error: lastError?.errText,
+      quizMode: safeMode
     });
   } catch (err) {
     console.error('Quiz generation error:', err);
     const fallbackQuiz = buildLocalQuiz({
       topic: req.body?.topic,
       difficulty: req.body?.difficulty,
-      numQuestions: req.body?.numQuestions || 5
+      numQuestions: req.body?.numQuestions || 5,
+      quizMode: req.body?.quizMode || 'theoretical'
     });
     return res.json({ generated: fallbackQuiz, source: 'fallback', error: err.message });
+  }
+});
+
+// =========================================================================
+// HANGAROO / FILL-IN-THE-BLANKS QUIZ GENERATOR
+// =========================================================================
+const CURATED_HANGAROO_BANK = [
+  // Programming & Tech
+  { category: 'Programming', difficulty: 'easy', clue: 'The keyword in Python used to define a function', answer: 'DEF', hint: 'Short for define' },
+  { category: 'Programming', difficulty: 'easy', clue: 'A sequence of characters enclosed in quotation marks', answer: 'STRING', hint: 'Basic text data type' },
+  { category: 'Programming', difficulty: 'easy', clue: 'The stylesheet language used to style and lay out web pages', answer: 'CSS', hint: 'Cascading Style Sheets' },
+  { category: 'Programming', difficulty: 'medium', clue: 'A function that calls itself repeatedly until reaching a base condition', answer: 'RECURSION', hint: 'Self-calling function' },
+  { category: 'Programming', difficulty: 'medium', clue: 'A linear data structure following Last-In First-Out (LIFO) order', answer: 'STACK', hint: 'Push and pop' },
+  { category: 'Programming', difficulty: 'medium', clue: 'JavaScript runtime built on Chrome V8 engine for server-side code', answer: 'NODEJS', hint: 'Server runtime' },
+  { category: 'Programming', difficulty: 'hard', clue: 'Programming paradigm emphasizing immutability and pure functions', answer: 'FUNCTIONAL', hint: 'Opposite of imperative' },
+  { category: 'Programming', difficulty: 'hard', clue: 'Optimization technique storing results of expensive function calls', answer: 'MEMOIZATION', hint: 'Caching computations' },
+  { category: 'Artificial Intelligence', difficulty: 'easy', clue: 'AI model structure inspired by biological brain neural connections', answer: 'NEURAL NETWORK', hint: 'Layers of interconnected nodes' },
+  { category: 'Artificial Intelligence', difficulty: 'medium', clue: 'The deep learning architecture powering modern LLMs using self-attention', answer: 'TRANSFORMER', hint: 'Introduced in Attention is All You Need' },
+  { category: 'Artificial Intelligence', difficulty: 'hard', clue: 'Technique that adjusts pre-trained model weights on a targeted domain dataset', answer: 'FINE TUNING', hint: 'Specializing an existing model' },
+  { category: 'Science', difficulty: 'easy', clue: 'The cellular organelle known as the powerhouse of eukaryotic cells', answer: 'MITOCHONDRIA', hint: 'Generates cellular ATP' },
+  { category: 'Science', difficulty: 'medium', clue: 'Subatomic particle with negative electrical charge orbiting an atom nucleus', answer: 'ELECTRON', hint: 'Negative charge carrier' },
+  { category: 'Science', difficulty: 'hard', clue: 'Quantum state where particles remain linked regardless of physical distance', answer: 'ENTANGLEMENT', hint: 'Correlated quantum states' },
+  { category: 'History', difficulty: 'easy', clue: 'Ancient civilization along the Nile that constructed monumental stone pyramids', answer: 'EGYPTIANS', hint: 'Land of Pharaohs' },
+  { category: 'History', difficulty: 'medium', clue: 'Historic Eurasian trade route connecting Imperial China with the Mediterranean', answer: 'SILK ROAD', hint: 'Trade caravan network' },
+  { category: 'Geography', difficulty: 'easy', clue: 'The largest and deepest of Earth oceanic divisions', answer: 'PACIFIC', hint: 'Covers over 30% of Earth' },
+  { category: 'Geography', difficulty: 'medium', clue: 'The planned capital city of the Commonwealth of Australia', answer: 'CANBERRA', hint: 'Located in ACT' },
+  { category: 'Pop Culture', difficulty: 'easy', clue: 'The vigilante superhero protecting Gotham City known as the Caped Crusader', answer: 'BATMAN', hint: 'Alter-ego of Bruce Wayne' },
+  { category: 'Pop Culture', difficulty: 'medium', clue: 'The fictional continent where the Iron Throne of Westeros resides', answer: 'WESTEROS', hint: 'Game of Thrones setting' }
+];
+
+function buildLocalHangaroo({ topic = 'General', difficulty = 'medium', numQuestions = 5 }) {
+  const safeTopic = String(topic || 'General').toLowerCase().trim();
+  const safeDiff = String(difficulty || 'medium').toLowerCase().trim();
+  const count = Math.max(3, Math.min(10, Number(numQuestions) || 5));
+
+  let matched = CURATED_HANGAROO_BANK.filter(item => {
+    const cat = item.category.toLowerCase();
+    return (cat.includes(safeTopic) || safeTopic.includes(cat) || safeTopic === 'general') && item.difficulty === safeDiff;
+  });
+
+  if (matched.length < count) {
+    matched = [...matched, ...CURATED_HANGAROO_BANK.filter(item => {
+      const cat = item.category.toLowerCase();
+      return cat.includes(safeTopic) || safeTopic.includes(cat) || safeTopic === 'general';
+    })];
+  }
+
+  if (matched.length < count) {
+    matched = [...matched, ...CURATED_HANGAROO_BANK];
+  }
+
+  const seen = new Set();
+  const unique = [];
+  for (const item of matched) {
+    if (!seen.has(item.answer)) {
+      seen.add(item.answer);
+      unique.push(item);
+    }
+  }
+
+  const shuffled = shuffleArray(unique).slice(0, count);
+  return shuffled.map((item, idx) => ({
+    id: idx + 1,
+    clue: item.clue,
+    answer: item.answer.toUpperCase(),
+    hint: item.hint || 'Guess the letters to solve the puzzle!',
+    category: item.category
+  }));
+}
+
+router.post('/generate-hangaroo', async (req, res) => {
+  try {
+    const { topic = 'General Trivia', difficulty = 'medium', numQuestions = 5 } = req.body;
+    const safeTopic = String(topic).trim();
+    const safeDifficulty = String(difficulty).toLowerCase().trim();
+    const count = Math.max(3, Math.min(10, Number(numQuestions) || 5));
+
+    if (useFallback) {
+      const localPuzzles = buildLocalHangaroo({ topic: safeTopic, difficulty: safeDifficulty, numQuestions: count });
+      return res.json({ generated: { questions: localPuzzles }, source: 'fallback' });
+    }
+
+    const systemPrompt = `You are an expert game puzzle creator for Hangaroo on Quiz-A-Roo.
+Target Topic: "${safeTopic}"
+Target Difficulty: "${safeDifficulty.toUpperCase()}"
+
+CRITICAL RULES:
+1. Generate EXACTLY ${count} exciting word-blank guessing puzzles about "${safeTopic}".
+2. "answer" MUST be a single word or 2-word phrase (A-Z characters only, uppercase, length 3-14 letters). No numbers or punctuation.
+3. "clue" must be a crisp, engaging sentence testing knowledge of the answer.
+4. "hint" must provide a fun, helpful hint.
+5. "category" should be "${safeTopic}".
+6. Output ONLY valid JSON:
+{"questions": [{"id": 1, "clue": "...", "answer": "...", "hint": "...", "category": "${safeTopic}"}]}`;
+
+    const userPrompt = `Generate ${count} ${safeDifficulty} Hangaroo word-blank puzzles about "${safeTopic}". Return valid JSON only.`;
+
+    for (const modelName of MODEL_FALLBACKS) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 16000);
+
+        const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${OPENAI_KEY}`
+          },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.8,
+            max_tokens: Math.min(900, count * 160)
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content || '';
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch { const m = text.match(/\{[\s\S]*\}/); if (m) parsed = JSON.parse(m[0]); }
+
+        if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+          const formatted = parsed.questions.map((q, idx) => ({
+            id: idx + 1,
+            clue: String(q.clue || '').trim(),
+            answer: String(q.answer || '').toUpperCase().replace(/[^A-Z ]/g, '').trim(),
+            hint: String(q.hint || `Clue for ${safeTopic}`).trim(),
+            category: safeTopic
+          })).filter(q => q.answer.length >= 2);
+
+          if (formatted.length >= 3) {
+            return res.json({
+              generated: { questions: formatted.slice(0, count) },
+              source: 'llm',
+              model: modelName,
+              topic: safeTopic,
+              difficulty: safeDifficulty
+            });
+          }
+        }
+      } catch (err) {
+        console.warn(`Hangaroo generation error on ${modelName}:`, err.message);
+      }
+    }
+
+    const fallbackPuzzles = buildLocalHangaroo({ topic: safeTopic, difficulty: safeDifficulty, numQuestions: count });
+    return res.json({ generated: { questions: fallbackPuzzles }, source: 'fallback' });
+  } catch (err) {
+    console.error('Hangaroo error:', err);
+    const fallbackPuzzles = buildLocalHangaroo({ topic: req.body?.topic, difficulty: req.body?.difficulty, numQuestions: 5 });
+    return res.json({ generated: { questions: fallbackPuzzles }, source: 'fallback', error: err.message });
+  }
+});
+
+// =========================================================================
+// DOCUMENT EXTRACTION & CLEANING UTILITIES
+// =========================================================================
+
+// Clean and sanitize text: strip null bytes, non-printable control characters, unicode replacement chars
+function sanitizeAndCleanText(rawText) {
+  if (!rawText || typeof rawText !== 'string') return '';
+  return rawText
+    .replace(/\0/g, '')
+    .replace(/[\x01-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, ' ')
+    .replace(/\uFFFD/g, '') // remove Unicode replacement character
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n\s*\n\s*\n+/g, '\n\n')
+    .trim();
+}
+
+// Guard against binary garbage (zip files, corrupt PDFs, executables, non-text files)
+function isBinaryGarbage(text) {
+  if (!text || typeof text !== 'string' || text.length < 10) return true;
+
+  // Check magic byte signatures that leak through as raw strings
+  if (
+    text.startsWith('PK\x03\x04') ||
+    text.startsWith('7z\xBC\xAF') ||
+    text.startsWith('\x1f\x8b') ||
+    text.startsWith('MZ')
+  ) {
+    return true;
+  }
+
+  // Count printable standard characters in first 2000 chars
+  const sample = text.slice(0, 2000);
+  const printable = sample.match(/[a-zA-Z0-9\s.,!?;:()'"\-\/\\=\[\]{}<>@#$%^&*_+=`~|]/g) || [];
+  const printableRatio = printable.length / sample.length;
+
+  return printableRatio < 0.70;
+}
+
+// Multi-format extractor supporting DOCX, DOC, PDF, PPTX, PPT, XLSX, XLS, ODT, ODS, ODP, RTF, and text/code
+async function extractDocumentText(buffer, originalName = '', mimetype = '') {
+  const nameLower = (originalName || '').toLowerCase();
+  let extractedText = '';
+
+  // 1. PDF Documents
+  if (nameLower.endsWith('.pdf') || mimetype === 'application/pdf') {
+    try {
+      const pdfData = await pdfParse(buffer);
+      extractedText = pdfData.text || '';
+    } catch (pdfErr) {
+      console.warn('pdf-parse failed, attempting officeParser for PDF:', pdfErr.message);
+      try {
+        extractedText = await officeParser.parseOffice(buffer, { fileType: 'pdf', outputErrorToConsole: false });
+      } catch (opErr) {
+        console.warn('officeParser PDF fallback also failed:', opErr.message);
+      }
+    }
+  }
+  // 2. Microsoft Word (.docx)
+  else if (nameLower.endsWith('.docx') || mimetype.includes('wordprocessingml')) {
+    try {
+      const result = await mammoth.extractRawText({ buffer });
+      extractedText = result.value || '';
+    } catch (mammothErr) {
+      console.warn('mammoth failed, trying officeParser for docx:', mammothErr.message);
+      try {
+        extractedText = await officeParser.parseOffice(buffer, { fileType: 'docx', outputErrorToConsole: false });
+      } catch (opErr) {
+        console.warn('officeParser docx failed:', opErr.message);
+      }
+    }
+  }
+  // 3. Legacy Microsoft Word (.doc)
+  else if (nameLower.endsWith('.doc') || mimetype.includes('msword')) {
+    try {
+      extractedText = await officeParser.parseOffice(buffer, { fileType: 'doc', outputErrorToConsole: false });
+    } catch (err) {
+      console.warn('officeParser doc failed:', err.message);
+    }
+  }
+  // 4. PowerPoint (.pptx, .ppt)
+  else if (nameLower.endsWith('.pptx') || nameLower.endsWith('.ppt') || mimetype.includes('presentation')) {
+    try {
+      const ft = nameLower.endsWith('.ppt') ? 'ppt' : 'pptx';
+      extractedText = await officeParser.parseOffice(buffer, { fileType: ft, outputErrorToConsole: false });
+    } catch (err) {
+      console.warn('officeParser pptx failed:', err.message);
+    }
+  }
+  // 5. Excel (.xlsx, .xls)
+  else if (nameLower.endsWith('.xlsx') || nameLower.endsWith('.xls') || mimetype.includes('spreadsheet')) {
+    try {
+      const ft = nameLower.endsWith('.xls') ? 'xls' : 'xlsx';
+      extractedText = await officeParser.parseOffice(buffer, { fileType: ft, outputErrorToConsole: false });
+    } catch (err) {
+      console.warn('officeParser xlsx failed:', err.message);
+    }
+  }
+  // 6. OpenDocument (.odt, .odp, .ods)
+  else if (nameLower.endsWith('.odt') || nameLower.endsWith('.odp') || nameLower.endsWith('.ods')) {
+    try {
+      const ext = nameLower.split('.').pop();
+      extractedText = await officeParser.parseOffice(buffer, { fileType: ext, outputErrorToConsole: false });
+    } catch (err) {
+      console.warn('officeParser odt failed:', err.message);
+    }
+  }
+  // 7. Rich Text Format (.rtf)
+  else if (nameLower.endsWith('.rtf') || mimetype.includes('rtf')) {
+    try {
+      extractedText = await officeParser.parseOffice(buffer, { fileType: 'rtf', outputErrorToConsole: false });
+    } catch (err) {
+      console.warn('officeParser rtf failed:', err.message);
+    }
+  }
+  // 8. Plain text, markdown, json, csv, code files (.txt, .md, .py, .js, .java, etc.)
+  else {
+    extractedText = buffer.toString('utf-8');
+  }
+
+  return sanitizeAndCleanText(extractedText);
+}
+
+// Intelligent content-based fallback questions if LLM is unreachable
+function generateIntelligentDocFallback({ docText, docName, count, difficulty, focus }) {
+  const cleanLines = docText
+    .split(/\n+/)
+    .map(l => l.trim())
+    .filter(l => l.length >= 25 && l.length <= 180 && !l.startsWith('#') && !l.startsWith('//'));
+
+  const sentences = docText
+    .split(/(?<=[.?!])\s+/)
+    .map(s => s.trim().replace(/\s+/g, ' '))
+    .filter(s => s.length >= 35 && s.length <= 160 && /[a-zA-Z]/.test(s));
+
+  // Extract key capitalized technical phrases or terms
+  const terms = Array.from(new Set(
+    (docText.match(/\b[A-Z][a-zA-Z0-9_\-]{2,25}\b/g) || [])
+      .filter(w => !['The', 'This', 'That', 'These', 'Those', 'With', 'From', 'Have', 'Were', 'Which', 'Their', 'About', 'There', 'When', 'Where', 'What', 'How', 'Assignment', 'Chapter', 'Section', 'Page', 'Figure', 'Table'].includes(w))
+  ));
+
+  const pool = sentences.length >= 4 ? sentences : (cleanLines.length >= 4 ? cleanLines : [
+    `Key operational requirement detailed in ${docName}`,
+    `Primary algorithmic or conceptual principle described in the text`,
+    `Standard execution protocol outlined in the study material`,
+    `Theoretical model and validation benchmark specified in the document`
+  ]);
+
+  const questions = [];
+
+  for (let i = 0; i < count; i++) {
+    const targetSentence = pool[i % pool.length];
+    const keyTerm = terms[i % (terms.length || 1)] || 'the material';
+
+    // Distractors from other parts of the document
+    const distractors = [];
+    for (let j = 1; j <= 3; j++) {
+      const alt = pool[(i + j * 2) % pool.length];
+      if (alt && alt !== targetSentence && !distractors.includes(alt)) {
+        distractors.push(alt);
+      } else {
+        distractors.push(`Alternative approach described in Section ${j + 1}`);
+      }
+    }
+
+    let stem = '';
+    const variant = i % 3;
+    if (variant === 0) {
+      stem = `According to ${docName}, what is explicitly highlighted regarding "${keyTerm}"?`;
+    } else if (variant === 1) {
+      stem = `Which of the following statements accurately reflects the documented findings in ${docName}?`;
+    } else {
+      stem = `Based on the key concepts in ${docName}, which requirement or principle is correct?`;
+    }
+
+    questions.push({
+      id: i + 1,
+      question: stem,
+      options: [targetSentence, ...distractors.slice(0, 3)],
+      answerIndex: 0
+    });
+  }
+
+  return formatAndRandomizeQuestions(questions);
+}
+
+// =========================================================================
+// DOCUMENT UPLOAD & EXAM PREP ENDPOINTS
+// =========================================================================
+router.post('/upload-document', upload.single('document'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file was uploaded' });
+    }
+
+    const originalName = req.file.originalname || 'document.txt';
+    const mimetype = req.file.mimetype || '';
+
+    console.log(`Processing document upload: "${originalName}" (${mimetype}, ${req.file.size} bytes)`);
+
+    const cleanText = await extractDocumentText(req.file.buffer, originalName, mimetype);
+
+    if (!cleanText || cleanText.length < 15 || isBinaryGarbage(cleanText)) {
+      return res.status(422).json({
+        error: `Could not extract readable text from "${originalName}". The file may be password-protected, an unsupported binary format, or contain scanned images without OCR text.`
+      });
+    }
+
+    const words = cleanText.split(/\s+/).filter(Boolean);
+    const wordCount = words.length;
+    const charCount = cleanText.length;
+
+    console.log(`✅ Extracted ${wordCount} words (${charCount} chars) from "${originalName}"`);
+
+    return res.json({
+      success: true,
+      fileName: originalName,
+      fileSize: req.file.size,
+      text: cleanText,
+      wordCount,
+      charCount,
+      preview: cleanText.slice(0, 500)
+    });
+  } catch (err) {
+    console.error('Upload document error:', err);
+    return res.status(500).json({ error: err.message || 'File upload failed' });
+  }
+});
+
+router.post('/generate-doc-quiz', async (req, res) => {
+  try {
+    const {
+      documentText,
+      documentName = 'Uploaded Document',
+      difficulty = 'medium',
+      focus = 'comprehensive',
+      numQuestions = 5,
+      quizType = 'mcq'
+    } = req.body;
+
+    const cleanDocText = sanitizeAndCleanText(documentText);
+
+    if (!cleanDocText || cleanDocText.length < 20 || isBinaryGarbage(cleanDocText)) {
+      return res.status(400).json({
+        error: 'Document text is empty or unreadable. Please ensure the uploaded file contains clean readable text.'
+      });
+    }
+
+    const safeDocName = String(documentName).trim() || 'Uploaded Document';
+    const safeDiff = String(difficulty).toLowerCase().trim() || 'medium';
+    const safeFocus = String(focus).toLowerCase().trim() || 'comprehensive';
+    const count = Math.max(3, Math.min(10, Number(numQuestions) || 5));
+
+    // Limit excerpt to 5,000 characters for snappy 1-2s response times and token safety
+    const docSnippet = cleanDocText.slice(0, 5000);
+
+    const focusDescriptions = {
+      comprehensive: 'comprehensive exam covering core theoretical principles, definitions, practical applications, and lab steps',
+      practical: 'hands-on practical applications, lab procedures, experiment outputs, debugging, and implementation details',
+      theoretical: 'theoretical foundations, conceptual models, key definitions, formulas, and fundamental laws'
+    };
+    const chosenFocus = focusDescriptions[safeFocus] || focusDescriptions.comprehensive;
+
+    // Use fast, verified models
+    const DOC_MODELS = Array.from(new Set([
+      DEFAULT_MODEL,
+      'openai/gpt-oss-120b',
+      'qwen/qwen3.6-27b',
+      'groq/compound-mini'
+    ].filter(Boolean)));
+
+    // 1. Hangaroo format from document
+    if (quizType === 'hangaroo') {
+      const hangarooSystemPrompt = `You are an academic exam creator designing a Hangaroo fill-in-the-blank exam review puzzle based EXCLUSIVELY on the provided document.
+Document: "${safeDocName}"
+Difficulty: "${safeDiff.toUpperCase()}"
+Focus: ${chosenFocus}
+
+Document excerpt:
+"""
+${docSnippet}
+"""
+
+CRITICAL RULES:
+1. Extract EXACTLY ${count} essential key terms, acronyms, or technical keywords directly from the text.
+2. The "answer" MUST be a single word or 2-word phrase (A-Z characters only, uppercase, length 3-14 letters).
+3. The "clue" must be an engaging, informative trivia clue/sentence testing knowledge of that term from the document.
+4. Output ONLY valid JSON:
+{"questions": [{"id": 1, "clue": "...", "answer": "...", "hint": "...", "category": "${safeDocName}"}]}`;
+
+      const hangarooUserPrompt = `Extract ${count} exam key-term blanks from "${safeDocName}". Difficulty: ${safeDiff}. Return valid JSON only.`;
+
+      for (const modelName of DOC_MODELS) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+          const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_KEY}` },
+            body: JSON.stringify({
+              model: modelName,
+              messages: [
+                { role: 'system', content: hangarooSystemPrompt },
+                { role: 'user', content: hangarooUserPrompt }
+              ],
+              response_format: { type: 'json_object' },
+              temperature: 0.7,
+              max_tokens: 800
+            }),
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+
+          if (!response.ok) continue;
+          const data = await response.json();
+          const text = data.choices?.[0]?.message?.content || '';
+          let parsed = null;
+          try { parsed = JSON.parse(text); } catch { const m = text.match(/\{[\s\S]*\}/); if (m) parsed = JSON.parse(m[0]); }
+
+          if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+            const formatted = parsed.questions.map((q, idx) => ({
+              id: idx + 1,
+              clue: String(q.clue || '').trim(),
+              answer: String(q.answer || '').toUpperCase().replace(/[^A-Z ]/g, '').trim(),
+              hint: String(q.hint || `Exam key term from ${safeDocName}`).trim(),
+              category: safeDocName
+            })).filter(q => q.answer.length >= 2);
+
+            return res.json({
+              generated: { questions: formatted.slice(0, count) },
+              source: 'llm',
+              model: modelName,
+              documentName: safeDocName,
+              difficulty: safeDiff,
+              quizType: 'hangaroo'
+            });
+          }
+        } catch (err) {
+          console.warn(`Doc Hangaroo generation failed on ${modelName}:`, err.message);
+        }
+      }
+
+      // Fallback Hangaroo from document words
+      const wordsInDoc = Array.from(new Set(docSnippet.match(/\b[A-Za-z]{4,12}\b/g) || []))
+        .filter(w => !['this', 'that', 'with', 'from', 'have', 'were', 'which', 'their', 'about', 'there', 'these', 'would', 'could'].includes(w.toLowerCase()))
+        .slice(0, count);
+
+      const fallbackDocHangaroo = wordsInDoc.map((w, idx) => ({
+        id: idx + 1,
+        clue: `Core technical terminology from ${safeDocName} emphasized in the study material:`,
+        answer: w.toUpperCase(),
+        hint: `Appears in ${safeDocName}`,
+        category: safeDocName
+      }));
+
+      return res.json({
+        generated: { questions: fallbackDocHangaroo },
+        source: 'fallback',
+        documentName: safeDocName,
+        difficulty: safeDiff,
+        quizType: 'hangaroo'
+      });
+    }
+
+    // 2. MCQ format from document
+    const systemPrompt = `You are a university professor creating an exam preparation quiz based EXCLUSIVELY on the provided student document/manual:
+Document Name: "${safeDocName}"
+Target Difficulty: "${safeDiff.toUpperCase()}"
+Exam Focus: ${chosenFocus}
+
+Document excerpt:
+"""
+${docSnippet}
+"""
+
+CRITICAL RULES:
+1. Generate EXACTLY ${count} multiple-choice exam questions testing specific material, procedures, equations, lab findings, definitions, or code directly present in this document.
+2. Strictly adhere to ${safeDiff.toUpperCase()} difficulty.
+3. Every question must have 4 distinct, plausible, informative options (not generic labels).
+4. Distribute the correct answer evenly across indices (0, 1, 2, 3).
+5. Output ONLY valid JSON:
+{"questions": [{"id": 1, "question": "...", "options": ["...", "...", "...", "..."], "answerIndex": 0}]}`;
+
+    const userPrompt = `Generate ${count} ${safeDiff} multiple-choice exam questions directly based on the content of "${safeDocName}". Return valid JSON only.`;
+
+    for (const modelName of DOC_MODELS) {
+      try {
+        console.log(`Generating exam quiz for "${safeDocName}" using model: ${modelName}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${OPENAI_KEY}` },
+          body: JSON.stringify({
+            model: modelName,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt }
+            ],
+            response_format: { type: 'json_object' },
+            temperature: 0.7,
+            max_tokens: Math.min(1000, Math.max(500, count * 190))
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errBody = await response.text();
+          console.warn(`Doc quiz model ${modelName} returned ${response.status}: ${errBody.slice(0, 100)}`);
+          continue;
+        }
+
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content || '';
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch { const m = text.match(/\{[\s\S]*\}/); if (m) parsed = JSON.parse(m[0]); }
+
+        if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+          const formattedQuestions = formatAndRandomizeQuestions(parsed.questions);
+          console.log(`✅ Successfully generated ${formattedQuestions.length} exam questions using ${modelName}`);
+          return res.json({
+            generated: { questions: formattedQuestions },
+            source: 'llm',
+            model: modelName,
+            documentName: safeDocName,
+            difficulty: safeDiff,
+            quizType: 'mcq'
+          });
+        }
+      } catch (err) {
+        console.warn(`Doc quiz generation failed on ${modelName}:`, err.message);
+      }
+    }
+
+    // Intelligent content-based Fallback MCQ generator if all LLMs fail
+    console.warn('All LLM calls failed for doc quiz; invoking intelligent content fallback generator.');
+    const fallbackQuestions = generateIntelligentDocFallback({
+      docText: cleanDocText,
+      docName: safeDocName,
+      count,
+      difficulty: safeDiff,
+      focus: safeFocus
+    });
+
+    return res.json({
+      generated: { questions: fallbackQuestions },
+      source: 'fallback',
+      documentName: safeDocName,
+      difficulty: safeDiff,
+      quizType: 'mcq'
+    });
+  } catch (err) {
+    console.error('Doc quiz error:', err);
+    return res.status(500).json({ error: err.message || 'Failed to generate document quiz' });
   }
 });
 
